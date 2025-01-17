@@ -116,6 +116,7 @@ export const Dashboard = () => {
             variant="outline" 
             className="gap-2"
             onClick={() => setShowActivityRecorder(true)}
+            disabled={tasks.length === 0}
           >
             <Calendar className="h-4 w-4" />
             Record Activities
@@ -171,6 +172,7 @@ export const Dashboard = () => {
       {showActivityRecorder && familyData && (
         <ActivityRecorder
           familyMembers={familyData.members}
+          tasks={tasks}
           onClose={() => setShowActivityRecorder(false)}
         />
       )}
