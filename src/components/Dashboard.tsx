@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { TaskCard } from "./TaskCard";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Calendar } from "lucide-react";
 import { FamilyDetailsForm } from "./FamilyDetailsForm";
 import { TaskForm } from "./TaskForm";
 import { format } from "date-fns";
@@ -23,12 +23,21 @@ interface Task {
   assignedTo: string;
 }
 
+interface TaskRecord {
+  taskId: number;
+  date: string;
+  completed: boolean;
+  assignedTo: string;
+}
+
 export const Dashboard = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [showFamilyForm, setShowFamilyForm] = useState(true);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [familyData, setFamilyData] = useState<{ familyName: string; members: FamilyMember[] } | null>(null);
+  const [taskRecords, setTaskRecords] = useState<TaskRecord[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   const handleFamilySubmit = (data: { familyName: string; members: FamilyMember[] }) => {
     setFamilyData(data);
@@ -96,10 +105,16 @@ export const Dashboard = () => {
             Track and manage your family's daily activities
           </p>
         </div>
-        <Button className="gap-2" onClick={() => setShowTaskForm(true)}>
-          <Plus className="h-4 w-4" />
-          Add Task
-        </Button>
+        <div className="flex gap-4">
+          <Button className="gap-2" onClick={() => setShowTaskForm(true)}>
+            <Plus className="h-4 w-4" />
+            Add Task
+          </Button>
+          <Button variant="outline" className="gap-2">
+            <Calendar className="h-4 w-4" />
+            Record Activities
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-8">

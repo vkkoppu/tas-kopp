@@ -8,10 +8,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FrequencySelector } from "./task-form/FrequencySelector";
 import { DateSelector } from "./task-form/DateSelector";
+import { useNavigate } from "react-router-dom";
 
 interface TaskFormProps {
   onSubmit: (task: {
@@ -39,6 +40,7 @@ interface TaskFormProps {
 }
 
 export const TaskForm = ({ onSubmit, onCancel, familyMembers, initialValues }: TaskFormProps) => {
+  const navigate = useNavigate();
   const [title, setTitle] = useState(initialValues?.title ?? "");
   const [priority, setPriority] = useState<"low" | "medium" | "high">(initialValues?.priority ?? "medium");
   const [frequency, setFrequency] = useState<"once" | "daily" | "weekly" | "custom">(initialValues?.frequency ?? "once");
@@ -47,6 +49,8 @@ export const TaskForm = ({ onSubmit, onCancel, familyMembers, initialValues }: T
   const [startDate, setStartDate] = useState<Date | undefined>(initialValues?.startDate);
   const [endDate, setEndDate] = useState<Date | undefined>(initialValues?.endDate);
   const [assignedTo, setAssignedTo] = useState(initialValues?.assignedTo ?? "");
+
+  const endDateRef = useRef<HTMLButtonElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,6 +64,12 @@ export const TaskForm = ({ onSubmit, onCancel, familyMembers, initialValues }: T
       endDate: frequency !== "once" ? endDate : undefined,
       assignedTo,
     });
+    navigate('/');
+  };
+
+  const handleCancel = () => {
+    onCancel();
+    navigate('/');
   };
 
   return (
@@ -119,6 +129,7 @@ export const TaskForm = ({ onSubmit, onCancel, familyMembers, initialValues }: T
                     label="Start Date"
                     date={startDate}
                     onDateChange={setStartDate}
+                    onDateSelected={() => endDateRef.current?.focus()}
                   />
                   <DateSelector
                     label="End Date"
@@ -145,7 +156,7 @@ export const TaskForm = ({ onSubmit, onCancel, familyMembers, initialValues }: T
               </div>
 
               <div className="flex gap-4 pt-4">
-                <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+                <Button type="button" variant="outline" onClick={handleCancel} className="flex-1">
                   Cancel
                 </Button>
                 <Button type="submit" className="flex-1">
