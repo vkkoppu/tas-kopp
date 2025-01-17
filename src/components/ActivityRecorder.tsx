@@ -7,6 +7,13 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Task {
   id: number;
@@ -37,6 +44,7 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
   const [completedTasks, setCompletedTasks] = useState<Set<number>>(new Set());
   const [records, setRecords] = useState<ActivityRecord[]>([]);
   const [activeTab, setActiveTab] = useState("record");
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const handleTaskToggle = (taskId: number) => {
     const newCompletedTasks = new Set(completedTasks);
@@ -63,6 +71,13 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
     return task ? task.title : 'Unknown Task';
   };
 
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      setSelectedDate(date);
+      setIsCalendarOpen(false); // Close the calendar popup after selection
+    }
+  };
+
   return (
     <Card className="fixed inset-4 z-50 flex flex-col bg-background md:inset-auto md:left-1/2 md:top-1/2 md:max-w-2xl md:-translate-x-1/2 md:-translate-y-1/2 md:h-[80vh]">
       <div className="flex flex-col h-full p-6">
@@ -74,21 +89,35 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
             <TabsTrigger value="history">View History</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="record" className="flex-1 flex flex-col">
-            <div className="space-y-4 mb-4">
-              <p className="text-muted-foreground">Select a date and mark completed tasks</p>
-              <div className="flex justify-center">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => date && setSelectedDate(date)}
-                  className="rounded-md border"
-                />
-              </div>
+          <TabsContent value="record" className="flex-1 flex flex-col space-y-4">
+            <div>
+              <p className="text-muted-foreground mb-2">Select a date and mark completed tasks</p>
+              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !selectedDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={handleDateSelect}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
-            <div className="flex-1 min-h-0">
-              <ScrollArea className="h-[300px] border rounded-md p-4">
+            <div className="flex-1 min-h-0 border rounded-md">
+              <ScrollArea className="h-[40vh] p-4">
                 {tasks.map((task) => (
                   <div key={task.id} className="flex items-center space-x-2 py-2">
                     <Checkbox
@@ -112,7 +141,7 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
               </ScrollArea>
             </div>
 
-            <div className="mt-4 space-y-2">
+            <div className="pt-4 space-y-2">
               <Button 
                 onClick={handleSave}
                 className="w-full"
@@ -120,6 +149,13 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
                 disabled={completedTasks.size === 0}
               >
                 Submit Activities
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={onClose}
+                className="w-full"
+              >
+                Close
               </Button>
             </div>
           </TabsContent>
@@ -145,16 +181,15 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
                 </p>
               )}
             </ScrollArea>
+            <Button 
+              variant="outline" 
+              onClick={onClose}
+              className="w-full mt-4"
+            >
+              Close
+            </Button>
           </TabsContent>
         </Tabs>
-
-        <Button 
-          variant="outline" 
-          onClick={onClose}
-          className="w-full mt-4"
-        >
-          Close
-        </Button>
       </div>
     </Card>
   );
