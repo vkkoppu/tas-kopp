@@ -2,6 +2,7 @@ import { useState } from "react";
 import { TaskCard } from "./TaskCard";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { FamilyDetailsForm } from "./FamilyDetailsForm";
 
 const mockTasks = [
   {
@@ -30,6 +31,7 @@ const mockTasks = [
 export const Dashboard = () => {
   const [tasks, setTasks] = useState(mockTasks);
   const [completedTasks, setCompletedTasks] = useState<number[]>([]);
+  const [showFamilyForm, setShowFamilyForm] = useState(true);
 
   const handleComplete = (taskId: number, completed: boolean) => {
     if (completed) {
@@ -38,6 +40,10 @@ export const Dashboard = () => {
       setCompletedTasks(completedTasks.filter((id) => id !== taskId));
     }
   };
+
+  if (showFamilyForm) {
+    return <FamilyDetailsForm />;
+  }
 
   return (
     <div className="container py-8 animate-fade-in">
