@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { TaskCard } from "./TaskCard";
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar } from "lucide-react";
+import { Plus, Calendar, BarChart2 } from "lucide-react";
 import { FamilyDetailsForm } from "./FamilyDetailsForm";
 import { TaskForm } from "./TaskForm";
 import { format } from "date-fns";
 import { ActivityRecorder } from "./ActivityRecorder";
+import { TaskTrends } from "./TaskTrends";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface FamilyMember {
   name: string;
@@ -41,6 +43,9 @@ export const Dashboard = () => {
   const [taskRecords, setTaskRecords] = useState<TaskRecord[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showEditFamily, setShowEditFamily] = useState(false);
+  const [groupBy, setGroupBy] = useState<"individual" | "shared">("individual");
+  const [showTrends, setShowTrends] = useState(false);
+  const [trendsTimeframe, setTrendsTimeframe] = useState<"week" | "month">("week");
 
   const handleFamilySubmit = (data: { familyName: string; members: FamilyMember[] }) => {
     setFamilyData(data);
@@ -106,6 +111,23 @@ export const Dashboard = () => {
     return grouped;
   };
 
+  const groupTasks = () => {
+    if (groupBy === "shared") {
+      const sharedTasks = tasks.filter(task => 
+        tasks.filter(t => t.title === task.title).length > 1
+      );
+      const individualTasks = tasks.filter(task => 
+        !sharedTasks.some(st => st.title === task.title)
+      );
+      
+      return {
+        "Shared Tasks": sharedTasks,
+        "Individual Tasks": individualTasks
+      };
+    }
+    return groupTasksByAssignee();
+  };
+
   const handleEditFamily = () => {
     setShowEditFamily(true);
   };
@@ -119,7 +141,7 @@ export const Dashboard = () => {
     );
   }
 
-  const groupedTasks = groupTasksByAssignee();
+  const groupedTasks = groupTasks();
 
   return (
     <div className="container py-8 animate-fade-in">
@@ -156,15 +178,57 @@ export const Dashboard = () => {
             <Calendar className="h-4 w-4" />
             Record Activities
           </Button>
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => setShowTrends(!showTrends)}
+          >
+            <BarChart2 className="h-4 w-4" />
+            {showTrends ? "Hide" : "Show"} Trends
+          </Button>
         </div>
       </div>
 
+      <div className="flex justify-between items-center mb-6">
+        <Select value={groupBy} onValueChange={(value: "individual" | "shared") => setGroupBy(value)}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Group by..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="individual">By Individual</SelectItem>
+            <SelectItem value="shared">By Shared/Individual</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {showTrends && (
+          <Select value={trendsTimeframe} onValueChange={(value: "week" | "month") => setTrendsTimeframe(value)}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Timeframe..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="week">Last Week</SelectItem>
+              <SelectItem value="month">Last Month</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
+      </div>
+
+      {showTrends && (
+        <div className="mb-8">
+          <TaskTrends 
+            taskRecords={taskRecords}
+            tasks={tasks}
+            timeframe={trendsTimeframe}
+          />
+        </div>
+      )}
+
       <div className="space-y-8">
-        {Object.entries(groupedTasks).map(([assignee, assigneeTasks]) => (
-          <div key={assignee} className="space-y-4">
-            <h2 className="text-2xl font-semibold">{assignee}'s Tasks</h2>
+        {Object.entries(groupedTasks).map(([group, groupTasks]) => (
+          <div key={group} className="space-y-4">
+            <h2 className="text-2xl font-semibold">{group}</h2>
             <div className="grid gap-4">
-              {assigneeTasks.map((task) => (
+              {groupTasks.map((task) => (
                 <TaskCard
                   key={task.id}
                   title={task.title}
