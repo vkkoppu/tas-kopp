@@ -62,7 +62,7 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold mb-4">Record Activities</h2>
-          <p className="text-muted-foreground">Select a date and record completed tasks</p>
+          <p className="text-muted-foreground">Select a date and mark completed tasks</p>
         </div>
         
         <div className="flex justify-center">
@@ -90,11 +90,29 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
               </Label>
             </div>
           ))}
+          {tasks.length === 0 && (
+            <p className="text-center text-muted-foreground py-4">
+              No tasks available for recording
+            </p>
+          )}
         </ScrollArea>
 
-        <div className="flex justify-end gap-4">
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSave}>Save Records</Button>
+        <div className="flex flex-col gap-4">
+          <Button 
+            onClick={handleSave}
+            className="w-full"
+            size="lg"
+            disabled={completedTasks.size === 0}
+          >
+            Submit Activities
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={onClose}
+            className="w-full"
+          >
+            Cancel
+          </Button>
         </div>
       </div>
     </Card>
