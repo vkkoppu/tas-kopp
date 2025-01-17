@@ -5,6 +5,7 @@ import { Plus, Calendar } from "lucide-react";
 import { FamilyDetailsForm } from "./FamilyDetailsForm";
 import { TaskForm } from "./TaskForm";
 import { format } from "date-fns";
+import { ActivityRecorder } from "./ActivityRecorder";
 
 interface FamilyMember {
   name: string;
@@ -34,6 +35,7 @@ export const Dashboard = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [showFamilyForm, setShowFamilyForm] = useState(true);
   const [showTaskForm, setShowTaskForm] = useState(false);
+  const [showActivityRecorder, setShowActivityRecorder] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [familyData, setFamilyData] = useState<{ familyName: string; members: FamilyMember[] } | null>(null);
   const [taskRecords, setTaskRecords] = useState<TaskRecord[]>([]);
@@ -110,7 +112,11 @@ export const Dashboard = () => {
             <Plus className="h-4 w-4" />
             Add Task
           </Button>
-          <Button variant="outline" className="gap-2">
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={() => setShowActivityRecorder(true)}
+          >
             <Calendar className="h-4 w-4" />
             Record Activities
           </Button>
@@ -159,6 +165,13 @@ export const Dashboard = () => {
             startDate: editingTask.startDate ? new Date(editingTask.startDate) : undefined,
             endDate: editingTask.endDate ? new Date(editingTask.endDate) : undefined,
           } : undefined}
+        />
+      )}
+
+      {showActivityRecorder && familyData && (
+        <ActivityRecorder
+          familyMembers={familyData.members}
+          onClose={() => setShowActivityRecorder(false)}
         />
       )}
     </div>
