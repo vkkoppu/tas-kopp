@@ -73,42 +73,44 @@ export const FamilyDetailsForm = ({ onSubmit }: FamilyDetailsFormProps) => {
 
         <div className="space-y-4">
           <Label>Family Members</Label>
-          {members.map((member, index) => (
-            <div key={index} className="grid grid-cols-[1fr,1fr,auto] gap-4">
-              <div>
-                <Input
-                  value={member.name}
-                  onChange={(e) => updateMember(index, "name", e.target.value)}
-                  placeholder="Member name"
-                  required
-                />
-              </div>
-              <div>
-                <Select
-                  value={member.role}
-                  onValueChange={(value) => updateMember(index, "role", value)}
+          <div className="space-y-4">
+            {members.map((member, index) => (
+              <div key={index} className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1">
+                  <Input
+                    value={member.name}
+                    onChange={(e) => updateMember(index, "name", e.target.value)}
+                    placeholder="Member name"
+                    required
+                  />
+                </div>
+                <div className="flex-1">
+                  <Select
+                    value={member.role}
+                    onValueChange={(value) => updateMember(index, "role", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="parent">Parent</SelectItem>
+                      <SelectItem value="child">Child</SelectItem>
+                      <SelectItem value="grandparent">Grandparent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  onClick={() => handleDeleteMember(index)}
+                  disabled={members.length === 1}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="parent">Parent</SelectItem>
-                    <SelectItem value="child">Child</SelectItem>
-                    <SelectItem value="grandparent">Grandparent</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
-              <Button
-                type="button"
-                variant="destructive"
-                size="icon"
-                onClick={() => handleDeleteMember(index)}
-                disabled={members.length === 1}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         <div className="flex flex-col gap-4">
