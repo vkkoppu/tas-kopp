@@ -58,9 +58,9 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
   };
 
   return (
-    <Card className="fixed inset-4 z-50 flex flex-col bg-background md:inset-auto md:left-1/2 md:top-1/2 md:max-w-2xl md:-translate-x-1/2 md:-translate-y-1/2">
-      <div className="flex h-full max-h-[90vh] flex-col p-6">
-        <div className="space-y-4">
+    <Card className="fixed inset-4 z-50 flex flex-col bg-background md:inset-auto md:left-1/2 md:top-1/2 md:max-w-2xl md:-translate-x-1/2 md:-translate-y-1/2 md:h-[80vh]">
+      <div className="flex flex-col h-full p-6">
+        <div className="space-y-4 flex-shrink-0">
           <div>
             <h2 className="text-2xl font-bold mb-4">Record Activities</h2>
             <p className="text-muted-foreground">Select a date and mark completed tasks</p>
@@ -76,7 +76,7 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
           </div>
         </div>
 
-        <ScrollArea className="flex-1 my-6 rounded-md border p-4">
+        <ScrollArea className="flex-1 my-6 rounded-md border p-4 min-h-[200px] overflow-y-auto">
           {tasks.map((task) => (
             <div key={task.id} className="flex items-center space-x-2 py-2">
               <Checkbox
@@ -99,7 +99,7 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
           )}
         </ScrollArea>
 
-        <div className="flex flex-col gap-4 mt-auto pt-4">
+        <div className="flex flex-col gap-4 mt-auto pt-4 flex-shrink-0">
           <Button 
             onClick={handleSave}
             className="w-full"
