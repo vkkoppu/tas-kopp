@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useState } from "react";
+import { Trash2 } from "lucide-react";
 
 interface FamilyMember {
   name: string;
@@ -35,10 +36,21 @@ export const FamilyDetailsForm = ({ onSubmit }: FamilyDetailsFormProps) => {
     setMembers(newMembers);
   };
 
+  const handleDeleteMember = (index: number) => {
+    if (members.length > 1) {
+      const newMembers = members.filter((_, i) => i !== index);
+      setMembers(newMembers);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ familyName, members });
+    if (familyName.trim() && members.every(member => member.name.trim())) {
+      onSubmit({ familyName, members });
+    }
   };
+
+  const isFormValid = familyName.trim() && members.every(member => member.name.trim());
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-8 animate-fade-in">
@@ -62,7 +74,7 @@ export const FamilyDetailsForm = ({ onSubmit }: FamilyDetailsFormProps) => {
         <div className="space-y-4">
           <Label>Family Members</Label>
           {members.map((member, index) => (
-            <div key={index} className="grid grid-cols-2 gap-4">
+            <div key={index} className="grid grid-cols-[1fr,1fr,auto] gap-4">
               <div>
                 <Input
                   value={member.name}
@@ -86,6 +98,15 @@ export const FamilyDetailsForm = ({ onSubmit }: FamilyDetailsFormProps) => {
                   </SelectContent>
                 </Select>
               </div>
+              <Button
+                type="button"
+                variant="destructive"
+                size="icon"
+                onClick={() => handleDeleteMember(index)}
+                disabled={members.length === 1}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
           ))}
         </div>
@@ -94,7 +115,9 @@ export const FamilyDetailsForm = ({ onSubmit }: FamilyDetailsFormProps) => {
           <Button type="button" variant="outline" onClick={handleAddMember}>
             Add Family Member
           </Button>
-          <Button type="submit">Continue</Button>
+          <Button type="submit" disabled={!isFormValid}>
+            Continue
+          </Button>
         </div>
       </form>
     </div>
