@@ -25,18 +25,10 @@ interface Task {
 
 export const Dashboard = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [completedTasks, setCompletedTasks] = useState<number[]>([]);
   const [showFamilyForm, setShowFamilyForm] = useState(true);
   const [showTaskForm, setShowTaskForm] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [familyData, setFamilyData] = useState<{ familyName: string; members: FamilyMember[] } | null>(null);
-
-  const handleComplete = (taskId: number, completed: boolean) => {
-    if (completed) {
-      setCompletedTasks([...completedTasks, taskId]);
-    } else {
-      setCompletedTasks(completedTasks.filter((id) => id !== taskId));
-    }
-  };
 
   const handleFamilySubmit = (data: { familyName: string; members: FamilyMember[] }) => {
     setFamilyData(data);
@@ -53,20 +45,45 @@ export const Dashboard = () => {
     customDays?: number;
     assignedTo: string;
   }) => {
-    const newTask: Task = {
-      id: tasks.length + 1,
+    const formattedTask = {
+      id: editingTask?.id ?? tasks.length + 1,
       ...taskData,
       dueDate: taskData.dueDate ? format(taskData.dueDate, "PP") : undefined,
       startDate: taskData.startDate ? format(taskData.startDate, "PP") : undefined,
       endDate: taskData.endDate ? format(taskData.endDate, "PP") : undefined,
     };
-    setTasks([...tasks, newTask]);
+
+    if (editingTask) {
+      setTasks(tasks.map(task => task.id === editingTask.id ? formattedTask : task));
+    } else {
+      setTasks([...tasks, formattedTask]);
+    }
+    
     setShowTaskForm(false);
+    setEditingTask(null);
+  };
+
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setShowTaskForm(true);
+  };
+
+  const groupTasksByAssignee = () => {
+    const grouped: Record<string, Task[]> = {};
+    tasks.forEach(task => {
+      if (!grouped[task.assignedTo]) {
+        grouped[task.assignedTo] = [];
+      }
+      grouped[task.assignedTo].push(task);
+    });
+    return grouped;
   };
 
   if (showFamilyForm) {
     return <FamilyDetailsForm onSubmit={handleFamilySubmit} />;
   }
+
+  const groupedTasks = groupTasksByAssignee();
 
   return (
     <div className="container py-8 animate-fade-in">
@@ -85,16 +102,26 @@ export const Dashboard = () => {
         </Button>
       </div>
 
-      <div className="grid gap-4">
-        {tasks.map((task) => (
-          <TaskCard
-            key={task.id}
-            title={task.title}
-            priority={task.priority}
-            dueDate={task.dueDate}
-            completed={completedTasks.includes(task.id)}
-            onComplete={(completed) => handleComplete(task.id, completed)}
-          />
+      <div className="space-y-8">
+        {Object.entries(groupedTasks).map(([assignee, assigneeTasks]) => (
+          <div key={assignee} className="space-y-4">
+            <h2 className="text-2xl font-semibold">{assignee}'s Tasks</h2>
+            <div className="grid gap-4">
+              {assigneeTasks.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  title={task.title}
+                  priority={task.priority}
+                  dueDate={task.dueDate}
+                  frequency={task.frequency}
+                  customDays={task.customDays}
+                  startDate={task.startDate}
+                  endDate={task.endDate}
+                  onEdit={() => handleEditTask(task)}
+                />
+              ))}
+            </div>
+          </div>
         ))}
         {tasks.length === 0 && (
           <p className="text-center text-muted-foreground py-8">
@@ -106,8 +133,17 @@ export const Dashboard = () => {
       {showTaskForm && familyData && (
         <TaskForm
           onSubmit={handleAddTask}
-          onCancel={() => setShowTaskForm(false)}
+          onCancel={() => {
+            setShowTaskForm(false);
+            setEditingTask(null);
+          }}
           familyMembers={familyData.members}
+          initialValues={editingTask ? {
+            ...editingTask,
+            dueDate: editingTask.dueDate ? new Date(editingTask.dueDate) : undefined,
+            startDate: editingTask.startDate ? new Date(editingTask.startDate) : undefined,
+            endDate: editingTask.endDate ? new Date(editingTask.endDate) : undefined,
+          } : undefined}
         />
       )}
     </div>

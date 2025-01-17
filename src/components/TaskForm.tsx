@@ -9,16 +9,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useState } from "react";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { FrequencySelector } from "./task-form/FrequencySelector";
+import { DateSelector } from "./task-form/DateSelector";
 
 interface TaskFormProps {
   onSubmit: (task: {
@@ -33,21 +26,30 @@ interface TaskFormProps {
   }) => void;
   onCancel: () => void;
   familyMembers: { name: string; role: string }[];
+  initialValues?: {
+    title: string;
+    priority: "low" | "medium" | "high";
+    dueDate?: Date;
+    startDate?: Date;
+    endDate?: Date;
+    frequency: "once" | "daily" | "weekly" | "custom";
+    customDays?: number;
+    assignedTo: string;
+  };
 }
 
-export const TaskForm = ({ onSubmit, onCancel, familyMembers }: TaskFormProps) => {
-  const [title, setTitle] = useState("");
-  const [priority, setPriority] = useState<"low" | "medium" | "high">("medium");
-  const [frequency, setFrequency] = useState<"once" | "daily" | "weekly" | "custom">("once");
-  const [customDays, setCustomDays] = useState<number>();
-  const [dueDate, setDueDate] = useState<Date>();
-  const [startDate, setStartDate] = useState<Date>();
-  const [endDate, setEndDate] = useState<Date>();
-  const [assignedTo, setAssignedTo] = useState("");
+export const TaskForm = ({ onSubmit, onCancel, familyMembers, initialValues }: TaskFormProps) => {
+  const [title, setTitle] = useState(initialValues?.title ?? "");
+  const [priority, setPriority] = useState<"low" | "medium" | "high">(initialValues?.priority ?? "medium");
+  const [frequency, setFrequency] = useState<"once" | "daily" | "weekly" | "custom">(initialValues?.frequency ?? "once");
+  const [customDays, setCustomDays] = useState<number | undefined>(initialValues?.customDays);
+  const [dueDate, setDueDate] = useState<Date | undefined>(initialValues?.dueDate);
+  const [startDate, setStartDate] = useState<Date | undefined>(initialValues?.startDate);
+  const [endDate, setEndDate] = useState<Date | undefined>(initialValues?.endDate);
+  const [assignedTo, setAssignedTo] = useState(initialValues?.assignedTo ?? "");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
     onSubmit({
       title,
       priority,
@@ -62,11 +64,13 @@ export const TaskForm = ({ onSubmit, onCancel, familyMembers }: TaskFormProps) =
 
   return (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-card rounded-lg shadow-lg w-full max-w-md animate-fade-in">
+      <div className="bg-card rounded-lg shadow-lg w-full max-w-md">
         <ScrollArea className="h-[80vh]">
           <div className="p-6 space-y-6">
             <div>
-              <h2 className="text-2xl font-bold mb-2">Add New Task</h2>
+              <h2 className="text-2xl font-bold mb-2">
+                {initialValues ? "Edit Task" : "Add New Task"}
+              </h2>
               <p className="text-muted-foreground">Fill in the task details below</p>
             </div>
 
@@ -96,118 +100,31 @@ export const TaskForm = ({ onSubmit, onCancel, familyMembers }: TaskFormProps) =
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="frequency">Frequency</Label>
-                <Select 
-                  value={frequency} 
-                  onValueChange={(value: "once" | "daily" | "weekly" | "custom") => setFrequency(value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select frequency" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="once">One Time</SelectItem>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="custom">Custom</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {frequency === "custom" && (
-                <div className="space-y-2">
-                  <Label htmlFor="customDays">Repeat every X days</Label>
-                  <Input
-                    id="customDays"
-                    type="number"
-                    min={1}
-                    value={customDays}
-                    onChange={(e) => setCustomDays(Number(e.target.value))}
-                    placeholder="Enter number of days"
-                    required
-                  />
-                </div>
-              )}
+              <FrequencySelector
+                frequency={frequency}
+                customDays={customDays}
+                onFrequencyChange={setFrequency}
+                onCustomDaysChange={setCustomDays}
+              />
 
               {frequency === "once" ? (
-                <div className="space-y-2">
-                  <Label>Due Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !dueDate && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dueDate ? format(dueDate, "PPP") : "Pick a date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={dueDate}
-                        onSelect={setDueDate}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
+                <DateSelector
+                  label="Due Date"
+                  date={dueDate}
+                  onDateChange={setDueDate}
+                />
               ) : (
                 <>
-                  <div className="space-y-2">
-                    <Label>Start Date</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !startDate && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {startDate ? format(startDate, "PPP") : "Pick a start date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={startDate}
-                          onSelect={setStartDate}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>End Date</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !endDate && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {endDate ? format(endDate, "PPP") : "Pick an end date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={endDate}
-                          onSelect={setEndDate}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
+                  <DateSelector
+                    label="Start Date"
+                    date={startDate}
+                    onDateChange={setStartDate}
+                  />
+                  <DateSelector
+                    label="End Date"
+                    date={endDate}
+                    onDateChange={setEndDate}
+                  />
                 </>
               )}
 
@@ -232,7 +149,7 @@ export const TaskForm = ({ onSubmit, onCancel, familyMembers }: TaskFormProps) =
                   Cancel
                 </Button>
                 <Button type="submit" className="flex-1">
-                  Add Task
+                  {initialValues ? "Save Changes" : "Add Task"}
                 </Button>
               </div>
             </form>
