@@ -15,7 +15,11 @@ interface FamilyMember {
   role: string;
 }
 
-export const FamilyDetailsForm = () => {
+interface FamilyDetailsFormProps {
+  onSubmit: (data: { familyName: string; members: FamilyMember[] }) => void;
+}
+
+export const FamilyDetailsForm = ({ onSubmit }: FamilyDetailsFormProps) => {
   const [familyName, setFamilyName] = useState("");
   const [members, setMembers] = useState<FamilyMember[]>([
     { name: "", role: "parent" },
@@ -33,8 +37,7 @@ export const FamilyDetailsForm = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Here we would typically save the family details
-    console.log({ familyName, members });
+    onSubmit({ familyName, members });
   };
 
   return (
