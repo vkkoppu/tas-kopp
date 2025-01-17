@@ -23,7 +23,11 @@ interface TaskFormProps {
   onSubmit: (task: {
     title: string;
     priority: "low" | "medium" | "high";
-    dueDate: Date;
+    dueDate?: Date;
+    startDate?: Date;
+    endDate?: Date;
+    frequency: "once" | "daily" | "weekly" | "custom";
+    customDays?: number;
     assignedTo: string;
   }) => void;
   onCancel: () => void;
@@ -33,17 +37,24 @@ interface TaskFormProps {
 export const TaskForm = ({ onSubmit, onCancel, familyMembers }: TaskFormProps) => {
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState<"low" | "medium" | "high">("medium");
+  const [frequency, setFrequency] = useState<"once" | "daily" | "weekly" | "custom">("once");
+  const [customDays, setCustomDays] = useState<number>();
   const [dueDate, setDueDate] = useState<Date>();
+  const [startDate, setStartDate] = useState<Date>();
+  const [endDate, setEndDate] = useState<Date>();
   const [assignedTo, setAssignedTo] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!dueDate) return;
     
     onSubmit({
       title,
       priority,
-      dueDate,
+      frequency,
+      customDays,
+      dueDate: frequency === "once" ? dueDate : undefined,
+      startDate: frequency !== "once" ? startDate : undefined,
+      endDate: frequency !== "once" ? endDate : undefined,
       assignedTo,
     });
   };
@@ -83,30 +94,119 @@ export const TaskForm = ({ onSubmit, onCancel, familyMembers }: TaskFormProps) =
           </div>
 
           <div className="space-y-2">
-            <Label>Due Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !dueDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dueDate ? format(dueDate, "PPP") : "Pick a date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={dueDate}
-                  onSelect={setDueDate}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <Label htmlFor="frequency">Frequency</Label>
+            <Select 
+              value={frequency} 
+              onValueChange={(value: "once" | "daily" | "weekly" | "custom") => setFrequency(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select frequency" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="once">One Time</SelectItem>
+                <SelectItem value="daily">Daily</SelectItem>
+                <SelectItem value="weekly">Weekly</SelectItem>
+                <SelectItem value="custom">Custom</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+
+          {frequency === "custom" && (
+            <div className="space-y-2">
+              <Label htmlFor="customDays">Repeat every X days</Label>
+              <Input
+                id="customDays"
+                type="number"
+                min={1}
+                value={customDays}
+                onChange={(e) => setCustomDays(Number(e.target.value))}
+                placeholder="Enter number of days"
+                required
+              />
+            </div>
+          )}
+
+          {frequency === "once" ? (
+            <div className="space-y-2">
+              <Label>Due Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !dueDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dueDate ? format(dueDate, "PPP") : "Pick a date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={dueDate}
+                    onSelect={setDueDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-2">
+                <Label>Start Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !startDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {startDate ? format(startDate, "PPP") : "Pick a start date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={startDate}
+                      onSelect={setStartDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="space-y-2">
+                <Label>End Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !endDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {endDate ? format(endDate, "PPP") : "Pick an end date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={endDate}
+                      onSelect={setEndDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="assignedTo">Assign To</Label>

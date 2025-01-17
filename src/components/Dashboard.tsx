@@ -15,7 +15,11 @@ interface Task {
   id: number;
   title: string;
   priority: "low" | "medium" | "high";
-  dueDate: string;
+  dueDate?: string;
+  startDate?: string;
+  endDate?: string;
+  frequency: "once" | "daily" | "weekly" | "custom";
+  customDays?: number;
   assignedTo: string;
 }
 
@@ -42,13 +46,19 @@ export const Dashboard = () => {
   const handleAddTask = (taskData: {
     title: string;
     priority: "low" | "medium" | "high";
-    dueDate: Date;
+    dueDate?: Date;
+    startDate?: Date;
+    endDate?: Date;
+    frequency: "once" | "daily" | "weekly" | "custom";
+    customDays?: number;
     assignedTo: string;
   }) => {
     const newTask: Task = {
       id: tasks.length + 1,
       ...taskData,
-      dueDate: format(taskData.dueDate, "PP"),
+      dueDate: taskData.dueDate ? format(taskData.dueDate, "PP") : undefined,
+      startDate: taskData.startDate ? format(taskData.startDate, "PP") : undefined,
+      endDate: taskData.endDate ? format(taskData.endDate, "PP") : undefined,
     };
     setTasks([...tasks, newTask]);
     setShowTaskForm(false);
