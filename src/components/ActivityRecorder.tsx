@@ -45,6 +45,7 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
   const [records, setRecords] = useState<ActivityRecord[]>([]);
   const [activeTab, setActiveTab] = useState("record");
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"all" | "pending" | "completed">("all");
 
   const isTaskCompletedForDate = (taskId: number, date: Date) => {
     const formattedDate = format(date, 'yyyy-MM-dd');
@@ -56,7 +57,7 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
 
   const handleTaskToggle = (taskId: number) => {
     if (isTaskCompletedForDate(taskId, selectedDate)) {
-      return; // Don't allow toggling if already completed for this date
+      return;
     }
     
     const newCompletedTasks = new Set(completedTasks);
@@ -84,12 +85,22 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
   };
 
   const handleDateSelect = (date: Date | undefined) => {
-    if (date) {
-      setSelectedDate(date);
-      setIsCalendarOpen(false);
-      setCompletedTasks(new Set()); // Clear selected tasks when date changes
-    }
+    setSelectedDate(date || new Date());
+    setIsCalendarOpen(false);
+    setCompletedTasks(new Set());
   };
+
+  const filteredTasks = tasks.filter(task => {
+    const isCompleted = isTaskCompletedForDate(task.id, selectedDate);
+    switch (viewMode) {
+      case "pending":
+        return !isCompleted;
+      case "completed":
+        return isCompleted;
+      default:
+        return true;
+    }
+  });
 
   return (
     <Card className="fixed inset-4 z-50 flex flex-col bg-background md:inset-auto md:left-1/2 md:top-1/2 md:max-w-2xl md:-translate-x-1/2 md:-translate-y-1/2 md:h-[80vh]">
@@ -103,8 +114,20 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
           </TabsList>
 
           <TabsContent value="record" className="flex-1 flex flex-col space-y-4">
-            <div>
-              <p className="text-muted-foreground mb-2">Select a date and mark completed tasks</p>
+            <div className="space-y-4">
+              <div>
+                <Label>Filter Tasks</Label>
+                <select 
+                  className="w-full p-2 border rounded-md mt-1"
+                  value={viewMode}
+                  onChange={(e) => setViewMode(e.target.value as "all" | "pending" | "completed")}
+                >
+                  <option value="all">All Tasks</option>
+                  <option value="pending">Pending Tasks</option>
+                  <option value="completed">Completed Tasks</option>
+                </select>
+              </div>
+
               <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                 <PopoverTrigger asChild>
                   <Button
@@ -131,7 +154,7 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
 
             <div className="flex-1 min-h-0 border rounded-md">
               <ScrollArea className="h-[40vh] p-4">
-                {tasks.map((task) => {
+                {filteredTasks.map((task) => {
                   const isCompleted = isTaskCompletedForDate(task.id, selectedDate);
                   return (
                     <div key={task.id} className="flex items-center space-x-2 py-2">
@@ -161,9 +184,9 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
                     </div>
                   );
                 })}
-                {tasks.length === 0 && (
+                {filteredTasks.length === 0 && (
                   <p className="text-center text-muted-foreground py-4">
-                    No tasks available for recording
+                    No {viewMode} tasks available
                   </p>
                 )}
               </ScrollArea>

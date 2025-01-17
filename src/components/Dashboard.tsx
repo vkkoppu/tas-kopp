@@ -40,6 +40,7 @@ export const Dashboard = () => {
   const [familyData, setFamilyData] = useState<{ familyName: string; members: FamilyMember[] } | null>(null);
   const [taskRecords, setTaskRecords] = useState<TaskRecord[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [showEditFamily, setShowEditFamily] = useState(false);
 
   const handleFamilySubmit = (data: { familyName: string; members: FamilyMember[] }) => {
     setFamilyData(data);
@@ -90,8 +91,21 @@ export const Dashboard = () => {
     return grouped;
   };
 
-  if (showFamilyForm) {
-    return <FamilyDetailsForm onSubmit={handleFamilySubmit} />;
+  const handleEditFamily = () => {
+    setShowEditFamily(true);
+  };
+
+  if (showFamilyForm || showEditFamily) {
+    return (
+      <FamilyDetailsForm 
+        onSubmit={(data) => {
+          setFamilyData(data);
+          setShowFamilyForm(false);
+          setShowEditFamily(false);
+        }}
+        initialValues={showEditFamily ? familyData : undefined}
+      />
+    );
   }
 
   const groupedTasks = groupTasksByAssignee();
@@ -100,9 +114,19 @@ export const Dashboard = () => {
     <div className="container py-8 animate-fade-in">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-4xl font-bold mb-2">
-            {familyData?.familyName}'s Tasks
-          </h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-4xl font-bold mb-2">
+              {familyData?.familyName}'s Tasks
+            </h1>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleEditFamily}
+              className="mb-2"
+            >
+              Edit Family
+            </Button>
+          </div>
           <p className="text-muted-foreground">
             Track and manage your family's daily activities
           </p>

@@ -18,13 +18,14 @@ interface FamilyMember {
 
 interface FamilyDetailsFormProps {
   onSubmit: (data: { familyName: string; members: FamilyMember[] }) => void;
+  initialValues?: { familyName: string; members: FamilyMember[] } | null;
 }
 
-export const FamilyDetailsForm = ({ onSubmit }: FamilyDetailsFormProps) => {
-  const [familyName, setFamilyName] = useState("");
-  const [members, setMembers] = useState<FamilyMember[]>([
-    { name: "", role: "parent" },
-  ]);
+export const FamilyDetailsForm = ({ onSubmit, initialValues }: FamilyDetailsFormProps) => {
+  const [familyName, setFamilyName] = useState(initialValues?.familyName || "");
+  const [members, setMembers] = useState<FamilyMember[]>(
+    initialValues?.members || [{ name: "", role: "parent" }]
+  );
 
   const handleAddMember = () => {
     setMembers([...members, { name: "", role: "child" }]);
