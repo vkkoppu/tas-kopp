@@ -46,7 +46,19 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
   const [activeTab, setActiveTab] = useState("record");
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
+  const isTaskCompletedForDate = (taskId: number, date: Date) => {
+    const formattedDate = format(date, 'yyyy-MM-dd');
+    return records.some(record => 
+      record.taskId === taskId && 
+      record.date === formattedDate
+    );
+  };
+
   const handleTaskToggle = (taskId: number) => {
+    if (isTaskCompletedForDate(taskId, selectedDate)) {
+      return; // Don't allow toggling if already completed for this date
+    }
+    
     const newCompletedTasks = new Set(completedTasks);
     if (newCompletedTasks.has(taskId)) {
       newCompletedTasks.delete(taskId);
@@ -74,7 +86,8 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
       setSelectedDate(date);
-      setIsCalendarOpen(false); // Close the calendar popup after selection
+      setIsCalendarOpen(false);
+      setCompletedTasks(new Set()); // Clear selected tasks when date changes
     }
   };
 
@@ -118,21 +131,36 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
 
             <div className="flex-1 min-h-0 border rounded-md">
               <ScrollArea className="h-[40vh] p-4">
-                {tasks.map((task) => (
-                  <div key={task.id} className="flex items-center space-x-2 py-2">
-                    <Checkbox
-                      id={`task-${task.id}`}
-                      checked={completedTasks.has(task.id)}
-                      onCheckedChange={() => handleTaskToggle(task.id)}
-                    />
-                    <Label htmlFor={`task-${task.id}`} className="flex-1">
-                      <span className="font-medium">{task.title}</span>
-                      <span className="ml-2 text-sm text-muted-foreground">
-                        (Assigned to: {task.assignedTo})
-                      </span>
-                    </Label>
-                  </div>
-                ))}
+                {tasks.map((task) => {
+                  const isCompleted = isTaskCompletedForDate(task.id, selectedDate);
+                  return (
+                    <div key={task.id} className="flex items-center space-x-2 py-2">
+                      <Checkbox
+                        id={`task-${task.id}`}
+                        checked={isCompleted || completedTasks.has(task.id)}
+                        onCheckedChange={() => handleTaskToggle(task.id)}
+                        disabled={isCompleted}
+                      />
+                      <Label 
+                        htmlFor={`task-${task.id}`} 
+                        className={cn(
+                          "flex-1",
+                          isCompleted && "text-muted-foreground line-through"
+                        )}
+                      >
+                        <span className="font-medium">{task.title}</span>
+                        <span className="ml-2 text-sm text-muted-foreground">
+                          (Assigned to: {task.assignedTo})
+                        </span>
+                        {isCompleted && (
+                          <span className="ml-2 text-sm text-muted-foreground">
+                            (Already completed)
+                          </span>
+                        )}
+                      </Label>
+                    </div>
+                  );
+                })}
                 {tasks.length === 0 && (
                   <p className="text-center text-muted-foreground py-4">
                     No tasks available for recording
