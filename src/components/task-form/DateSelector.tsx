@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { useEffect, useRef } from "react";
+import { useState } from "react";
 
 interface DateSelectorProps {
   label: string;
@@ -19,10 +19,11 @@ interface DateSelectorProps {
 }
 
 export const DateSelector = ({ label, date, onDateChange, onDateSelected }: DateSelectorProps) => {
-  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [open, setOpen] = useState(false);
 
   const handleSelect = (newDate?: Date) => {
     onDateChange(newDate);
+    setOpen(false);
     if (newDate && onDateSelected) {
       onDateSelected();
     }
@@ -31,10 +32,9 @@ export const DateSelector = ({ label, date, onDateChange, onDateSelected }: Date
   return (
     <div className="space-y-2">
       <Label>{label}</Label>
-      <Popover>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
-            ref={buttonRef}
             variant="outline"
             className={cn(
               "w-full justify-start text-left font-normal",

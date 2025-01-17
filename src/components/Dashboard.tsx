@@ -44,7 +44,22 @@ export const Dashboard = () => {
 
   const handleFamilySubmit = (data: { familyName: string; members: FamilyMember[] }) => {
     setFamilyData(data);
+    // Update task assignees when family members are renamed
+    if (familyData) {
+      const oldToNewNames = new Map(
+        familyData.members.map((oldMember) => {
+          const newMember = data.members.find((m) => m.role === oldMember.role);
+          return [oldMember.name, newMember?.name || oldMember.name];
+        })
+      );
+
+      setTasks(tasks.map(task => ({
+        ...task,
+        assignedTo: oldToNewNames.get(task.assignedTo) || task.assignedTo
+      })));
+    }
     setShowFamilyForm(false);
+    setShowEditFamily(false);
   };
 
   const handleAddTask = (taskData: {
@@ -98,11 +113,7 @@ export const Dashboard = () => {
   if (showFamilyForm || showEditFamily) {
     return (
       <FamilyDetailsForm 
-        onSubmit={(data) => {
-          setFamilyData(data);
-          setShowFamilyForm(false);
-          setShowEditFamily(false);
-        }}
+        onSubmit={handleFamilySubmit}
         initialValues={showEditFamily ? familyData : undefined}
       />
     );
