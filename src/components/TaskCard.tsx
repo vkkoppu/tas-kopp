@@ -1,19 +1,25 @@
-import { Badge } from "@/components/ui/badge";
+import { CalendarIcon, Users2Icon } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { Pencil } from "lucide-react";
 
 interface TaskCardProps {
   title: string;
   priority: "low" | "medium" | "high";
   dueDate?: string;
-  frequency: "once" | "daily" | "weekly" | "custom";
+  frequency: string;
   customDays?: number;
   startDate?: string;
   endDate?: string;
   onEdit: () => void;
 }
+
+const priorityColors = {
+  low: "bg-pastel-green",
+  medium: "bg-pastel-yellow",
+  high: "bg-pastel-orange"
+};
 
 export const TaskCard = ({
   title,
@@ -25,56 +31,48 @@ export const TaskCard = ({
   endDate,
   onEdit,
 }: TaskCardProps) => {
-  const priorityColors = {
-    low: "bg-priority-low/10 text-priority-low border-priority-low",
-    medium: "bg-priority-medium/10 text-priority-medium border-priority-medium",
-    high: "bg-priority-high/10 text-priority-high border-priority-high",
-  };
-
-  const getFrequencyText = () => {
-    switch (frequency) {
-      case "once":
-        return `Due: ${dueDate}`;
-      case "daily":
-        return "Daily";
-      case "weekly":
-        return "Weekly";
-      case "custom":
-        return `Every ${customDays} days`;
-    }
-  };
-
   return (
-    <Card className="p-4 transition-all duration-300 hover:shadow-md animate-fade-in">
-      <div className="flex items-center gap-3">
+    <Card className={cn(
+      "p-4 transition-all hover:shadow-md",
+      priorityColors[priority],
+    )}>
+      <div className="flex justify-between items-start gap-4">
         <div className="flex-1">
-          <h3 className="font-medium line-clamp-1">{title}</h3>
-          <p className="text-sm text-muted-foreground">
-            {frequency === "once" ? (
-              getFrequencyText()
-            ) : (
-              <>
-                {getFrequencyText()}
-                {startDate && endDate && (
-                  <span className="ml-2">
-                    ({startDate} - {endDate})
-                  </span>
-                )}
-              </>
+          <h3 className="font-semibold text-lg mb-2">{title}</h3>
+          <div className="space-y-1 text-sm text-muted-foreground">
+            {dueDate && (
+              <div className="flex items-center gap-2">
+                <CalendarIcon className="h-4 w-4" />
+                <span>Due: {format(new Date(dueDate), "PPP")}</span>
+              </div>
             )}
-          </p>
+            <div className="flex items-center gap-2">
+              <Users2Icon className="h-4 w-4" />
+              <span>
+                {frequency === "custom"
+                  ? `Every ${customDays} days`
+                  : `${frequency.charAt(0).toUpperCase() + frequency.slice(1)}`}
+              </span>
+            </div>
+            {startDate && endDate && (
+              <div className="flex items-center gap-2">
+                <CalendarIcon className="h-4 w-4" />
+                <span>
+                  {format(new Date(startDate), "PP")} -{" "}
+                  {format(new Date(endDate), "PP")}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
         <Button
           variant="ghost"
-          size="icon"
+          size="sm"
           onClick={onEdit}
-          className="mr-2"
+          className="hover:bg-background/50"
         >
-          <Pencil className="h-4 w-4" />
+          Edit
         </Button>
-        <Badge className={cn("ml-auto", priorityColors[priority])}>
-          {priority}
-        </Badge>
       </div>
     </Card>
   );

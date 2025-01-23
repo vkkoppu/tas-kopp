@@ -10,7 +10,7 @@ export const TaskGroups = ({ groupedTasks, onEditTask }: TaskGroupsProps) => {
   return (
     <>
       {Object.entries(groupedTasks).map(([group, tasks]) => (
-        <div key={group} className="space-y-4">
+        <div key={group} className="space-y-4 bg-pastel-gray/30 p-6 rounded-lg mb-6">
           <h2 className="text-2xl font-semibold">{group}</h2>
           <div className="grid gap-4">
             {tasks.map((task) => (

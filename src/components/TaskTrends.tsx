@@ -25,13 +25,27 @@ export const TaskTrends = ({ taskRecords, tasks, timeframe }: TaskTrendsProps) =
   const daysToShow = timeframe === 'week' ? 7 : 30;
   const today = new Date();
   
+  // Ensure we're working with valid dates from taskRecords
+  const validRecords = taskRecords.filter(record => {
+    try {
+      parseISO(record.date);
+      return true;
+    } catch {
+      console.error('Invalid date found in task records:', record);
+      return false;
+    }
+  });
+  
   const data = Array.from({ length: daysToShow }).map((_, index) => {
     const date = subDays(today, daysToShow - 1 - index);
     const dateStr = format(date, 'yyyy-MM-dd');
     
-    // Count completed tasks for this date
-    const completedTasks = taskRecords.filter(record => {
-      return format(parseISO(record.date), 'yyyy-MM-dd') === dateStr;
+    const completedTasks = validRecords.filter(record => {
+      try {
+        return format(parseISO(record.date), 'yyyy-MM-dd') === dateStr;
+      } catch {
+        return false;
+      }
     }).length;
 
     return {
