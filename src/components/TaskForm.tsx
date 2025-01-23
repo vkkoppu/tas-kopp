@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { AssigneeSelector } from "./task-form/AssigneeSelector";
 import { PrioritySelector } from "./task-form/PrioritySelector";
 import { toast } from "sonner";
+import { Task } from "@/types/task";
 
 interface TaskFormProps {
   onSubmit: (task: {
@@ -23,16 +24,7 @@ interface TaskFormProps {
   }) => void;
   onCancel: () => void;
   familyMembers: { name: string; role: string }[];
-  initialValues?: {
-    title: string;
-    priority: "low" | "medium" | "high";
-    dueDate?: Date;
-    startDate?: Date;
-    endDate?: Date;
-    frequency: "once" | "daily" | "weekly" | "custom";
-    customDays?: number;
-    assignedTo: string[];
-  };
+  initialValues?: Task;
 }
 
 export const TaskForm = ({ onSubmit, onCancel, familyMembers, initialValues }: TaskFormProps) => {
@@ -41,9 +33,9 @@ export const TaskForm = ({ onSubmit, onCancel, familyMembers, initialValues }: T
   const [priority, setPriority] = useState<"low" | "medium" | "high">(initialValues?.priority ?? "medium");
   const [frequency, setFrequency] = useState<"once" | "daily" | "weekly" | "custom">(initialValues?.frequency ?? "once");
   const [customDays, setCustomDays] = useState<number | undefined>(initialValues?.customDays);
-  const [dueDate, setDueDate] = useState<Date | undefined>(initialValues?.dueDate);
-  const [startDate, setStartDate] = useState<Date | undefined>(initialValues?.startDate);
-  const [endDate, setEndDate] = useState<Date | undefined>(initialValues?.endDate);
+  const [dueDate, setDueDate] = useState<Date | undefined>(initialValues?.dueDate ? new Date(initialValues.dueDate) : undefined);
+  const [startDate, setStartDate] = useState<Date | undefined>(initialValues?.startDate ? new Date(initialValues.startDate) : undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(initialValues?.endDate ? new Date(initialValues.endDate) : undefined);
   const [assignedTo, setAssignedTo] = useState<string[]>(initialValues?.assignedTo ?? []);
 
   const handleSubmit = (e: React.FormEvent) => {

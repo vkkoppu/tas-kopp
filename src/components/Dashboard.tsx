@@ -7,22 +7,11 @@ import { TaskTrends } from "./TaskTrends";
 import { DashboardHeader } from "./dashboard/DashboardHeader";
 import { TaskFilters } from "./dashboard/TaskFilters";
 import { TaskGroups } from "./dashboard/TaskGroups";
+import { Task } from "@/types/task";
 
 interface FamilyMember {
   name: string;
   role: string;
-}
-
-interface Task {
-  id: number;
-  title: string;
-  priority: "low" | "medium" | "high";
-  dueDate?: string;
-  startDate?: string;
-  endDate?: string;
-  frequency: "once" | "daily" | "weekly" | "custom";
-  customDays?: number;
-  assignedTo: string[];
 }
 
 interface TaskRecord {
@@ -75,7 +64,7 @@ export const Dashboard = () => {
     customDays?: number;
     assignedTo: string[];
   }) => {
-    const formattedTask = {
+    const formattedTask: Task = {
       id: editingTask?.id ?? tasks.length + 1,
       ...taskData,
       dueDate: taskData.dueDate ? format(taskData.dueDate, "PP") : undefined,
