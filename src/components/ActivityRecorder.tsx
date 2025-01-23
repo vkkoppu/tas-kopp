@@ -24,13 +24,14 @@ interface Task {
   endDate?: string;
   frequency: "once" | "daily" | "weekly" | "custom";
   customDays?: number;
-  assignedTo: string;
+  assignedTo: string[];
 }
 
 interface ActivityRecord {
   taskId: number;
   completed: boolean;
   date: string;
+  completedBy: string;
 }
 
 interface ActivityRecorderProps {
@@ -46,6 +47,7 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
   const [activeTab, setActiveTab] = useState("record");
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"all" | "pending" | "completed">("all");
+  const [completedBy, setCompletedBy] = useState<Record<number, string>>({});
 
   const isTaskCompletedForDate = (taskId: number, date: Date) => {
     const formattedDate = format(date, 'yyyy-MM-dd');
@@ -63,6 +65,9 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
     const newCompletedTasks = new Set(completedTasks);
     if (newCompletedTasks.has(taskId)) {
       newCompletedTasks.delete(taskId);
+      const newCompletedBy = { ...completedBy };
+      delete newCompletedBy[taskId];
+      setCompletedBy(newCompletedBy);
     } else {
       newCompletedTasks.add(taskId);
     }
@@ -74,9 +79,11 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
       taskId,
       completed: true,
       date: format(selectedDate, 'yyyy-MM-dd'),
+      completedBy: completedBy[taskId] || '',
     }));
     setRecords([...records, ...newRecords]);
     setCompletedTasks(new Set());
+    setCompletedBy({});
   };
 
   const getTaskTitle = (taskId: number) => {
@@ -164,23 +171,42 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
                         onCheckedChange={() => handleTaskToggle(task.id)}
                         disabled={isCompleted}
                       />
-                      <Label 
-                        htmlFor={`task-${task.id}`} 
-                        className={cn(
-                          "flex-1",
-                          isCompleted && "text-muted-foreground line-through"
-                        )}
-                      >
-                        <span className="font-medium">{task.title}</span>
-                        <span className="ml-2 text-sm text-muted-foreground">
-                          (Assigned to: {task.assignedTo})
-                        </span>
-                        {isCompleted && (
+                      <div className="flex-1">
+                        <Label 
+                          htmlFor={`task-${task.id}`} 
+                          className={cn(
+                            "flex-1",
+                            isCompleted && "text-muted-foreground line-through"
+                          )}
+                        >
+                          <span className="font-medium">{task.title}</span>
                           <span className="ml-2 text-sm text-muted-foreground">
-                            (Already completed)
+                            (Assigned to: {task.assignedTo.join(", ")})
                           </span>
+                          {isCompleted && (
+                            <span className="ml-2 text-sm text-muted-foreground">
+                              (Completed by: {records.find(r => r.taskId === task.id && r.date === format(selectedDate, 'yyyy-MM-dd'))?.completedBy})
+                            </span>
+                          )}
+                        </Label>
+                        {completedTasks.has(task.id) && !isCompleted && (
+                          <Select
+                            value={completedBy[task.id] || ""}
+                            onValueChange={(value) => setCompletedBy({ ...completedBy, [task.id]: value })}
+                          >
+                            <SelectTrigger className="mt-2">
+                              <SelectValue placeholder="Select who completed this task" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {task.assignedTo.map((member) => (
+                                <SelectItem key={member} value={member}>
+                                  {member}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         )}
-                      </Label>
+                      </div>
                     </div>
                   );
                 })}

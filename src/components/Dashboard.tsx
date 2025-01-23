@@ -23,7 +23,7 @@ interface Task {
   endDate?: string;
   frequency: "once" | "daily" | "weekly" | "custom";
   customDays?: number;
-  assignedTo: string;
+  assignedTo: string[];
 }
 
 interface TaskRecord {
@@ -75,7 +75,7 @@ export const Dashboard = () => {
     endDate?: Date;
     frequency: "once" | "daily" | "weekly" | "custom";
     customDays?: number;
-    assignedTo: string;
+    assignedTo: string[];
   }) => {
     const formattedTask = {
       id: editingTask?.id ?? tasks.length + 1,
@@ -169,51 +169,56 @@ export const Dashboard = () => {
             <Plus className="h-4 w-4" />
             Add Task
           </Button>
-          <Button 
-            variant="outline" 
-            className="gap-2"
-            onClick={() => setShowActivityRecorder(true)}
-            disabled={tasks.length === 0}
-          >
-            <Calendar className="h-4 w-4" />
-            Record Activities
-          </Button>
-          <Button
-            variant="outline"
-            className="gap-2"
-            onClick={() => setShowTrends(!showTrends)}
-          >
-            <BarChart2 className="h-4 w-4" />
-            {showTrends ? "Hide" : "Show"} Trends
-          </Button>
+          {tasks.length > 0 && (
+            <>
+              <Button 
+                variant="outline" 
+                className="gap-2"
+                onClick={() => setShowActivityRecorder(true)}
+              >
+                <Calendar className="h-4 w-4" />
+                Record Activities
+              </Button>
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => setShowTrends(!showTrends)}
+              >
+                <BarChart2 className="h-4 w-4" />
+                {showTrends ? "Hide" : "Show"} Trends
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
-      <div className="flex justify-between items-center mb-6">
-        <Select value={groupBy} onValueChange={(value: "individual" | "shared") => setGroupBy(value)}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Group by..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="individual">By Individual</SelectItem>
-            <SelectItem value="shared">By Shared/Individual</SelectItem>
-          </SelectContent>
-        </Select>
-
-        {showTrends && (
-          <Select value={trendsTimeframe} onValueChange={(value: "week" | "month") => setTrendsTimeframe(value)}>
+      {tasks.length > 0 && (
+        <div className="flex justify-between items-center mb-6">
+          <Select value={groupBy} onValueChange={(value: "individual" | "shared") => setGroupBy(value)}>
             <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Timeframe..." />
+              <SelectValue placeholder="Group by..." />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="week">Last Week</SelectItem>
-              <SelectItem value="month">Last Month</SelectItem>
+              <SelectItem value="individual">By Individual</SelectItem>
+              <SelectItem value="shared">By Shared/Individual</SelectItem>
             </SelectContent>
           </Select>
-        )}
-      </div>
 
-      {showTrends && (
+          {showTrends && (
+            <Select value={trendsTimeframe} onValueChange={(value: "week" | "month") => setTrendsTimeframe(value)}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Timeframe..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="week">Last Week</SelectItem>
+                <SelectItem value="month">Last Month</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+      )}
+
+      {showTrends && tasks.length > 0 && (
         <div className="mb-8">
           <TaskTrends 
             taskRecords={taskRecords}
@@ -223,33 +228,31 @@ export const Dashboard = () => {
         </div>
       )}
 
-      <div className="space-y-8">
-        {Object.entries(groupedTasks).map(([group, groupTasks]) => (
-          <div key={group} className="space-y-4">
-            <h2 className="text-2xl font-semibold">{group}</h2>
-            <div className="grid gap-4">
-              {groupTasks.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  title={task.title}
-                  priority={task.priority}
-                  dueDate={task.dueDate}
-                  frequency={task.frequency}
-                  customDays={task.customDays}
-                  startDate={task.startDate}
-                  endDate={task.endDate}
-                  onEdit={() => handleEditTask(task)}
-                />
-              ))}
-            </div>
+      {Object.entries(groupedTasks).map(([group, groupTasks]) => (
+        <div key={group} className="space-y-4">
+          <h2 className="text-2xl font-semibold">{group}</h2>
+          <div className="grid gap-4">
+            {groupTasks.map((task) => (
+              <TaskCard
+                key={task.id}
+                title={task.title}
+                priority={task.priority}
+                dueDate={task.dueDate}
+                frequency={task.frequency}
+                customDays={task.customDays}
+                startDate={task.startDate}
+                endDate={task.endDate}
+                onEdit={() => handleEditTask(task)}
+              />
+            ))}
           </div>
-        ))}
-        {tasks.length === 0 && (
-          <p className="text-center text-muted-foreground py-8">
-            No tasks yet. Click the "Add Task" button to get started!
-          </p>
-        )}
-      </div>
+        </div>
+      ))}
+      {tasks.length === 0 && (
+        <p className="text-center text-muted-foreground py-8">
+          No tasks yet. Click the "Add Task" button to get started!
+        </p>
+      )}
 
       {showTaskForm && familyData && (
         <TaskForm

@@ -13,6 +13,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { FrequencySelector } from "./task-form/FrequencySelector";
 import { DateSelector } from "./task-form/DateSelector";
 import { useNavigate } from "react-router-dom";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
+import { toast } from "sonner";
 
 interface TaskFormProps {
   onSubmit: (task: {
@@ -23,7 +27,7 @@ interface TaskFormProps {
     endDate?: Date;
     frequency: "once" | "daily" | "weekly" | "custom";
     customDays?: number;
-    assignedTo: string;
+    assignedTo: string[];
   }) => void;
   onCancel: () => void;
   familyMembers: { name: string; role: string }[];
@@ -35,7 +39,7 @@ interface TaskFormProps {
     endDate?: Date;
     frequency: "once" | "daily" | "weekly" | "custom";
     customDays?: number;
-    assignedTo: string;
+    assignedTo: string[];
   };
 }
 
@@ -48,12 +52,20 @@ export const TaskForm = ({ onSubmit, onCancel, familyMembers, initialValues }: T
   const [dueDate, setDueDate] = useState<Date | undefined>(initialValues?.dueDate);
   const [startDate, setStartDate] = useState<Date | undefined>(initialValues?.startDate);
   const [endDate, setEndDate] = useState<Date | undefined>(initialValues?.endDate);
-  const [assignedTo, setAssignedTo] = useState(initialValues?.assignedTo ?? "");
+  const [assignedTo, setAssignedTo] = useState<string[]>(initialValues?.assignedTo ?? []);
 
   const endDateRef = useRef<HTMLButtonElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (assignedTo.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please assign the task to at least one family member",
+        variant: "destructive",
+      });
+      return;
+    }
     onSubmit({
       title,
       priority,
@@ -140,19 +152,53 @@ export const TaskForm = ({ onSubmit, onCancel, familyMembers, initialValues }: T
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="assignedTo">Assign To</Label>
-                <Select value={assignedTo} onValueChange={setAssignedTo}>
+                <Label htmlFor="assignedTo">Assign To (Required)</Label>
+                <Select
+                  value={assignedTo}
+                  onValueChange={(value) => {
+                    if (assignedTo.includes(value)) {
+                      setAssignedTo(assignedTo.filter(v => v !== value));
+                    } else {
+                      setAssignedTo([...assignedTo, value]);
+                    }
+                  }}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select family member" />
+                    <SelectValue placeholder="Select family members" />
                   </SelectTrigger>
                   <SelectContent>
                     {familyMembers.map((member, index) => (
-                      <SelectItem key={index} value={member.name}>
+                      <SelectItem 
+                        key={index} 
+                        value={member.name}
+                        className="flex items-center gap-2"
+                      >
+                        <Checkbox 
+                          checked={assignedTo.includes(member.name)}
+                          className="mr-2"
+                        />
                         {member.name} ({member.role})
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {assignedTo.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {assignedTo.map((name) => (
+                      <Badge 
+                        key={name}
+                        variant="secondary"
+                        className="flex items-center gap-1"
+                      >
+                        {name}
+                        <X
+                          className="h-3 w-3 cursor-pointer"
+                          onClick={() => setAssignedTo(assignedTo.filter(n => n !== name))}
+                        />
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-4 pt-4">

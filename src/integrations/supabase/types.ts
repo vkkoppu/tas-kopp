@@ -97,6 +97,42 @@ export type Database = {
         }
         Relationships: []
       }
+      task_assignments: {
+        Row: {
+          created_at: string
+          family_member_id: string | null
+          id: string
+          task_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          family_member_id?: string | null
+          id?: string
+          task_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          family_member_id?: string | null
+          id?: string
+          task_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_assignments_family_member_id_fkey"
+            columns: ["family_member_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_assignments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_records: {
         Row: {
           completed_at: string
@@ -138,7 +174,6 @@ export type Database = {
       }
       tasks: {
         Row: {
-          assigned_to: string
           created_at: string
           custom_days: number | null
           due_date: string | null
@@ -152,7 +187,6 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          assigned_to: string
           created_at?: string
           custom_days?: number | null
           due_date?: string | null
@@ -166,7 +200,6 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          assigned_to?: string
           created_at?: string
           custom_days?: number | null
           due_date?: string | null
@@ -180,13 +213,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "tasks_assigned_to_fkey"
-            columns: ["assigned_to"]
-            isOneToOne: false
-            referencedRelation: "family_members"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "tasks_family_id_fkey"
             columns: ["family_id"]
