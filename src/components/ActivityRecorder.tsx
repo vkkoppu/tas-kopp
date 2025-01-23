@@ -21,21 +21,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-interface Task {
-  id: number;
-  title: string;
-  priority: "low" | "medium" | "high";
-  dueDate?: string;
-  startDate?: string;
-  endDate?: string;
-  frequency: "once" | "daily" | "weekly" | "custom";
-  customDays?: number;
-  assignedTo: string[];
-}
+import { Task } from "@/types/task";
 
 interface ActivityRecord {
-  taskId: number;
+  taskId: string;
   completed: boolean;
   date: string;
   completedBy: string;
@@ -49,14 +38,14 @@ interface ActivityRecorderProps {
 
 export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityRecorderProps) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [completedTasks, setCompletedTasks] = useState<Set<number>>(new Set());
+  const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
   const [records, setRecords] = useState<ActivityRecord[]>([]);
   const [activeTab, setActiveTab] = useState("record");
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"all" | "pending" | "completed">("all");
-  const [completedBy, setCompletedBy] = useState<Record<number, string>>({});
+  const [completedBy, setCompletedBy] = useState<Record<string, string>>({});
 
-  const isTaskCompletedForDate = (taskId: number, date: Date) => {
+  const isTaskCompletedForDate = (taskId: string, date: Date) => {
     const formattedDate = format(date, 'yyyy-MM-dd');
     return records.some(record => 
       record.taskId === taskId && 
@@ -64,7 +53,7 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
     );
   };
 
-  const handleTaskToggle = (taskId: number) => {
+  const handleTaskToggle = (taskId: string) => {
     if (isTaskCompletedForDate(taskId, selectedDate)) {
       return;
     }
@@ -93,7 +82,7 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
     setCompletedBy({});
   };
 
-  const getTaskTitle = (taskId: number) => {
+  const getTaskTitle = (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
     return task ? task.title : 'Unknown Task';
   };
