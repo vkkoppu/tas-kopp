@@ -20,17 +20,18 @@ export const useFamily = () => {
   const { data: family, isLoading } = useQuery({
     queryKey: ["family"],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No authenticated user");
+
       const { data: familyData, error: familyError } = await supabase
         .from("families")
         .select("id, name")
-        .single();
+        .eq('created_by', user.id)
+        .maybeSingle();
 
       if (familyError) {
-        if (familyError.code !== "PGRST116") { // No data found
-          toast.error("Error loading family data");
-          throw familyError;
-        }
-        return null;
+        toast.error("Error loading family data");
+        throw familyError;
       }
 
       if (!familyData) return null;
