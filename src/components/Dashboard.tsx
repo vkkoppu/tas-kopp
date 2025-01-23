@@ -102,10 +102,14 @@ export const Dashboard = () => {
   const groupTasksByAssignee = () => {
     const grouped: Record<string, Task[]> = {};
     tasks.forEach(task => {
-      if (!grouped[task.assignedTo]) {
-        grouped[task.assignedTo] = [];
-      }
-      grouped[task.assignedTo].push(task);
+      task.assignedTo.forEach(assignee => {
+        if (!grouped[assignee]) {
+          grouped[assignee] = [];
+        }
+        if (!grouped[assignee].some(t => t.id === task.id)) {
+          grouped[assignee].push(task);
+        }
+      });
     });
     return grouped;
   };
@@ -113,10 +117,10 @@ export const Dashboard = () => {
   const groupTasks = () => {
     if (groupBy === "shared") {
       const sharedTasks = tasks.filter(task => 
-        tasks.filter(t => t.title === task.title).length > 1
+        task.assignedTo.length > 1
       );
       const individualTasks = tasks.filter(task => 
-        !sharedTasks.some(st => st.title === task.title)
+        task.assignedTo.length === 1
       );
       
       return {
