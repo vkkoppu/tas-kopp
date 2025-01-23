@@ -49,7 +49,6 @@ export const Dashboard = () => {
 
   const handleFamilySubmit = (data: { familyName: string; members: FamilyMember[] }) => {
     setFamilyData(data);
-    // Update task assignees when family members are renamed
     if (familyData) {
       const oldToNewNames = new Map(
         familyData.members.map((oldMember) => {
@@ -60,7 +59,7 @@ export const Dashboard = () => {
 
       setTasks(tasks.map(task => ({
         ...task,
-        assignedTo: oldToNewNames.get(task.assignedTo) || task.assignedTo
+        assignedTo: task.assignedTo.map(name => oldToNewNames.get(name) || name)
       })));
     }
     setShowFamilyForm(false);
