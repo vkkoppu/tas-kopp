@@ -20,37 +20,56 @@ export const useFamily = () => {
   const { data: family, isLoading } = useQuery({
     queryKey: ["family"],
     queryFn: async () => {
+      console.log("Fetching family data...");
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No authenticated user");
+      
+      if (!user) {
+        console.log("No authenticated user found");
+        throw new Error("No authenticated user");
+      }
 
+      console.log("User ID:", user.id);
+
+      // First, fetch the family data
       const { data: familyData, error: familyError } = await supabase
         .from("families")
-        .select("id, name")
+        .select("*")
         .eq('created_by', user.id)
         .maybeSingle();
 
       if (familyError) {
+        console.error("Error fetching family:", familyError);
         toast.error("Error loading family data");
         throw familyError;
       }
 
-      if (!familyData) return null;
+      console.log("Family data:", familyData);
 
+      if (!familyData) {
+        console.log("No family data found");
+        return null;
+      }
+
+      // Then, fetch the family members
       const { data: members, error: membersError } = await supabase
         .from("family_members")
-        .select("id, name, role")
+        .select("*")
         .eq("family_id", familyData.id);
 
       if (membersError) {
+        console.error("Error fetching family members:", membersError);
         toast.error("Error loading family members");
         throw membersError;
       }
+
+      console.log("Family members:", members);
 
       return {
         ...familyData,
         members: members || [],
       };
     },
+    retry: 1,
   });
 
   const createFamily = useMutation({
@@ -68,6 +87,7 @@ export const useFamily = () => {
         .single();
 
       if (familyError) {
+        console.error("Error creating family:", familyError);
         toast.error("Error creating family");
         throw familyError;
       }
@@ -83,6 +103,7 @@ export const useFamily = () => {
         .insert(membersToInsert);
 
       if (membersError) {
+        console.error("Error adding family members:", membersError);
         toast.error("Error adding family members");
         throw membersError;
       }
@@ -105,6 +126,7 @@ export const useFamily = () => {
         .eq("id", family.id);
 
       if (familyError) {
+        console.error("Error updating family:", familyError);
         toast.error("Error updating family");
         throw familyError;
       }
@@ -116,6 +138,7 @@ export const useFamily = () => {
         .eq("family_id", family.id);
 
       if (deleteError) {
+        console.error("Error updating family members:", deleteError);
         toast.error("Error updating family members");
         throw deleteError;
       }
@@ -132,6 +155,7 @@ export const useFamily = () => {
         .insert(membersToInsert);
 
       if (membersError) {
+        console.error("Error updating family members:", membersError);
         toast.error("Error updating family members");
         throw membersError;
       }
