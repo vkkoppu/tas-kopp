@@ -1,18 +1,18 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Card } from './ui/card';
-import { format, subDays } from 'date-fns';
+import { format, subDays, parseISO } from 'date-fns';
 
 interface TaskRecord {
-  taskId: number;
+  taskId: string;
   date: string;
   completed: boolean;
-  assignedTo: string;
+  completedBy: string;
 }
 
 interface Task {
-  id: number;
+  id: string;
   title: string;
-  assignedTo: string;
+  assignedTo: string[];
 }
 
 interface TaskTrendsProps {
@@ -28,13 +28,16 @@ export const TaskTrends = ({ taskRecords, tasks, timeframe }: TaskTrendsProps) =
   const data = Array.from({ length: daysToShow }).map((_, index) => {
     const date = subDays(today, daysToShow - 1 - index);
     const dateStr = format(date, 'yyyy-MM-dd');
-    const completedTasks = taskRecords.filter(record => 
-      record.date === dateStr && record.completed
-    ).length;
+    
+    // Count completed tasks for this date
+    const completedTasks = taskRecords.filter(record => {
+      const recordDate = format(parseISO(record.date), 'yyyy-MM-dd');
+      return recordDate === dateStr;
+    }).length;
 
     return {
       date: format(date, 'MMM dd'),
-      completed: completedTasks
+      completed: completedTasks || 0
     };
   });
 
@@ -45,15 +48,32 @@ export const TaskTrends = ({ taskRecords, tasks, timeframe }: TaskTrendsProps) =
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis />
-            <Tooltip />
+            <XAxis 
+              dataKey="date"
+              tick={{ fill: 'hsl(var(--foreground))' }}
+            />
+            <YAxis 
+              tick={{ fill: 'hsl(var(--foreground))' }}
+              allowDecimals={false}
+              domain={[0, 'auto']}
+            />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: 'hsl(var(--background))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '6px'
+              }}
+              labelStyle={{ color: 'hsl(var(--foreground))' }}
+            />
             <Legend />
             <Line 
               type="monotone" 
               dataKey="completed" 
-              stroke="#8884d8" 
+              stroke="hsl(var(--primary))"
               name="Completed Tasks"
+              strokeWidth={2}
+              dot={{ fill: 'hsl(var(--primary))' }}
+              activeDot={{ r: 6, fill: 'hsl(var(--primary))' }}
             />
           </LineChart>
         </ResponsiveContainer>
