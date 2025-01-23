@@ -1,16 +1,5 @@
 import { TaskCard } from "../TaskCard";
-
-interface Task {
-  id: number;
-  title: string;
-  priority: "low" | "medium" | "high";
-  dueDate?: string;
-  startDate?: string;
-  endDate?: string;
-  frequency: "once" | "daily" | "weekly" | "custom";
-  customDays?: number;
-  assignedTo: string[];
-}
+import { Task } from "@/types/task";
 
 interface TaskGroupsProps {
   groupedTasks: Record<string, Task[]>;
