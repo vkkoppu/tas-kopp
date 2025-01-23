@@ -54,9 +54,15 @@ export const useFamily = () => {
 
   const createFamily = useMutation({
     mutationFn: async (newFamily: Family) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No authenticated user");
+
       const { data: familyData, error: familyError } = await supabase
         .from("families")
-        .insert([{ name: newFamily.name }])
+        .insert([{ 
+          name: newFamily.name,
+          created_by: user.id 
+        }])
         .select()
         .single();
 
