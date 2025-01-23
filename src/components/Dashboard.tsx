@@ -1,18 +1,11 @@
 import { useState } from "react";
-import { TaskCard } from "./TaskCard";
-import { Button } from "@/components/ui/button";
-import { Plus, Calendar, BarChart2 } from "lucide-react";
 import { FamilyDetailsForm } from "./FamilyDetailsForm";
 import { TaskForm } from "./TaskForm";
-import { format } from "date-fns";
 import { ActivityRecorder } from "./ActivityRecorder";
 import { TaskTrends } from "./TaskTrends";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-interface FamilyMember {
-  name: string;
-  role: string;
-}
+import { DashboardHeader } from "./dashboard/DashboardHeader";
+import { TaskFilters } from "./dashboard/TaskFilters";
+import { TaskGroups } from "./dashboard/TaskGroups";
 
 interface Task {
   id: number;
@@ -39,7 +32,7 @@ export const Dashboard = () => {
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [showActivityRecorder, setShowActivityRecorder] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [familyData, setFamilyData] = useState<{ familyName: string; members: FamilyMember[] } | null>(null);
+  const [familyData, setFamilyData] = useState<{ familyName: string; members: { name: string; role: string }[] } | null>(null);
   const [taskRecords, setTaskRecords] = useState<TaskRecord[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showEditFamily, setShowEditFamily] = useState(false);
@@ -47,7 +40,7 @@ export const Dashboard = () => {
   const [showTrends, setShowTrends] = useState(false);
   const [trendsTimeframe, setTrendsTimeframe] = useState<"week" | "month">("week");
 
-  const handleFamilySubmit = (data: { familyName: string; members: FamilyMember[] }) => {
+  const handleFamilySubmit = (data: { familyName: string; members: { name: string; role: string }[] }) => {
     setFamilyData(data);
     if (familyData) {
       const oldToNewNames = new Map(
@@ -94,11 +87,6 @@ export const Dashboard = () => {
     setEditingTask(null);
   };
 
-  const handleEditTask = (task: Task) => {
-    setEditingTask(task);
-    setShowTaskForm(true);
-  };
-
   const groupTasksByAssignee = () => {
     const grouped: Record<string, Task[]> = {};
     tasks.forEach(task => {
@@ -131,10 +119,6 @@ export const Dashboard = () => {
     return groupTasksByAssignee();
   };
 
-  const handleEditFamily = () => {
-    setShowEditFamily(true);
-  };
-
   if (showFamilyForm || showEditFamily) {
     return (
       <FamilyDetailsForm 
@@ -148,77 +132,24 @@ export const Dashboard = () => {
 
   return (
     <div className="container py-8 animate-fade-in">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <div className="flex items-center gap-4">
-            <h1 className="text-4xl font-bold mb-2">
-              {familyData?.familyName}'s Tasks
-            </h1>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleEditFamily}
-              className="mb-2"
-            >
-              Edit Family
-            </Button>
-          </div>
-          <p className="text-muted-foreground">
-            Track and manage your family's daily activities
-          </p>
-        </div>
-        <div className="flex gap-4">
-          <Button className="gap-2" onClick={() => setShowTaskForm(true)}>
-            <Plus className="h-4 w-4" />
-            Add Task
-          </Button>
-          {tasks.length > 0 && (
-            <>
-              <Button 
-                variant="outline" 
-                className="gap-2"
-                onClick={() => setShowActivityRecorder(true)}
-              >
-                <Calendar className="h-4 w-4" />
-                Record Activities
-              </Button>
-              <Button
-                variant="outline"
-                className="gap-2"
-                onClick={() => setShowTrends(!showTrends)}
-              >
-                <BarChart2 className="h-4 w-4" />
-                {showTrends ? "Hide" : "Show"} Trends
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
+      <DashboardHeader
+        familyName={familyData?.familyName || ""}
+        onEditFamily={() => setShowEditFamily(true)}
+        onAddTask={() => setShowTaskForm(true)}
+        onRecordActivities={() => setShowActivityRecorder(true)}
+        onToggleTrends={() => setShowTrends(!showTrends)}
+        showTrends={showTrends}
+        hasTasks={tasks.length > 0}
+      />
 
       {tasks.length > 0 && (
-        <div className="flex justify-between items-center mb-6">
-          <Select value={groupBy} onValueChange={(value: "individual" | "shared") => setGroupBy(value)}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Group by..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="individual">By Individual</SelectItem>
-              <SelectItem value="shared">By Shared/Individual</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {showTrends && (
-            <Select value={trendsTimeframe} onValueChange={(value: "week" | "month") => setTrendsTimeframe(value)}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Timeframe..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="week">Last Week</SelectItem>
-                <SelectItem value="month">Last Month</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
-        </div>
+        <TaskFilters
+          groupBy={groupBy}
+          setGroupBy={setGroupBy}
+          showTrends={showTrends}
+          trendsTimeframe={trendsTimeframe}
+          setTrendsTimeframe={setTrendsTimeframe}
+        />
       )}
 
       {showTrends && tasks.length > 0 && (
@@ -231,26 +162,14 @@ export const Dashboard = () => {
         </div>
       )}
 
-      {Object.entries(groupedTasks).map(([group, groupTasks]) => (
-        <div key={group} className="space-y-4">
-          <h2 className="text-2xl font-semibold">{group}</h2>
-          <div className="grid gap-4">
-            {groupTasks.map((task) => (
-              <TaskCard
-                key={task.id}
-                title={task.title}
-                priority={task.priority}
-                dueDate={task.dueDate}
-                frequency={task.frequency}
-                customDays={task.customDays}
-                startDate={task.startDate}
-                endDate={task.endDate}
-                onEdit={() => handleEditTask(task)}
-              />
-            ))}
-          </div>
-        </div>
-      ))}
+      <TaskGroups
+        groupedTasks={groupedTasks}
+        onEditTask={(task) => {
+          setEditingTask(task);
+          setShowTaskForm(true);
+        }}
+      />
+
       {tasks.length === 0 && (
         <p className="text-center text-muted-foreground py-8">
           No tasks yet. Click the "Add Task" button to get started!
