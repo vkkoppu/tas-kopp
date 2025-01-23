@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
+import { useFamily } from "@/hooks/use-family";
 
 interface FamilyMember {
   name: string;
@@ -26,6 +27,7 @@ export const FamilyDetailsForm = ({ onSubmit, initialValues }: FamilyDetailsForm
   const [members, setMembers] = useState<FamilyMember[]>(
     initialValues?.members || [{ name: "", role: "parent" }]
   );
+  const { createFamily, updateFamily } = useFamily();
 
   const handleAddMember = () => {
     setMembers([...members, { name: "", role: "child" }]);
@@ -44,14 +46,32 @@ export const FamilyDetailsForm = ({ onSubmit, initialValues }: FamilyDetailsForm
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (familyName.trim() && members.every(member => member.name.trim())) {
-      onSubmit({ familyName, members });
+      const familyData = {
+        name: familyName,
+        members: members.map(member => ({
+          name: member.name.trim(),
+          role: member.role,
+        })),
+      };
+
+      try {
+        if (initialValues) {
+          await updateFamily.mutateAsync(familyData);
+        } else {
+          await createFamily.mutateAsync(familyData);
+        }
+        onSubmit({ familyName, members });
+      } catch (error) {
+        console.error("Error saving family:", error);
+      }
     }
   };
 
   const isFormValid = familyName.trim() && members.every(member => member.name.trim());
+  const isLoading = createFamily.isPending || updateFamily.isPending;
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-8 animate-fade-in">
@@ -118,8 +138,8 @@ export const FamilyDetailsForm = ({ onSubmit, initialValues }: FamilyDetailsForm
           <Button type="button" variant="outline" onClick={handleAddMember}>
             Add Family Member
           </Button>
-          <Button type="submit" disabled={!isFormValid}>
-            Continue
+          <Button type="submit" disabled={!isFormValid || isLoading}>
+            {isLoading ? "Saving..." : initialValues ? "Save Changes" : "Continue"}
           </Button>
         </div>
       </form>
