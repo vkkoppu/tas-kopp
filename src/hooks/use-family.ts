@@ -30,11 +30,13 @@ export const useFamily = () => {
 
       console.log("User ID:", user.id);
 
-      // First, fetch the family data
+      // First, fetch the most recent family data
       const { data: familyData, error: familyError } = await supabase
         .from("families")
         .select("*")
         .eq('created_by', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (familyError) {
