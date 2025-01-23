@@ -15,10 +15,10 @@ interface FamilyMember {
 }
 
 interface TaskRecord {
-  taskId: number;
+  taskId: string;
   date: string;
   completed: boolean;
-  assignedTo: string;
+  completedBy: string;
 }
 
 export const Dashboard = () => {
@@ -65,11 +65,11 @@ export const Dashboard = () => {
     assignedTo: string[];
   }) => {
     const formattedTask: Task = {
-      id: editingTask?.id ?? tasks.length + 1,
+      id: editingTask?.id ?? crypto.randomUUID(),
       ...taskData,
-      dueDate: taskData.dueDate ? format(taskData.dueDate, "PP") : undefined,
-      startDate: taskData.startDate ? format(taskData.startDate, "PP") : undefined,
-      endDate: taskData.endDate ? format(taskData.endDate, "PP") : undefined,
+      dueDate: taskData.dueDate ? format(taskData.dueDate, "yyyy-MM-dd") : undefined,
+      startDate: taskData.startDate ? format(taskData.startDate, "yyyy-MM-dd") : undefined,
+      endDate: taskData.endDate ? format(taskData.endDate, "yyyy-MM-dd") : undefined,
     };
 
     if (editingTask) {
@@ -177,12 +177,7 @@ export const Dashboard = () => {
             setEditingTask(null);
           }}
           familyMembers={familyData.members}
-          initialValues={editingTask ? {
-            ...editingTask,
-            dueDate: editingTask.dueDate ? new Date(editingTask.dueDate) : undefined,
-            startDate: editingTask.startDate ? new Date(editingTask.startDate) : undefined,
-            endDate: editingTask.endDate ? new Date(editingTask.endDate) : undefined,
-          } : undefined}
+          initialValues={editingTask}
         />
       )}
 
