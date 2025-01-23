@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/select";
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
-import { useFamily } from "@/hooks/useFamily";
 
 interface FamilyMember {
   name: string;
@@ -27,7 +26,6 @@ export const FamilyDetailsForm = ({ onSubmit, initialValues }: FamilyDetailsForm
   const [members, setMembers] = useState<FamilyMember[]>(
     initialValues?.members || [{ name: "", role: "parent" }]
   );
-  const { createFamily, updateFamily } = useFamily();
 
   const handleAddMember = () => {
     setMembers([...members, { name: "", role: "child" }]);
@@ -46,20 +44,9 @@ export const FamilyDetailsForm = ({ onSubmit, initialValues }: FamilyDetailsForm
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (familyName.trim() && members.every(member => member.name.trim())) {
-      if (initialValues) {
-        await updateFamily.mutateAsync({
-          familyName,
-          members,
-        });
-      } else {
-        await createFamily.mutateAsync({
-          familyName,
-          members,
-        });
-      }
       onSubmit({ familyName, members });
     }
   };
