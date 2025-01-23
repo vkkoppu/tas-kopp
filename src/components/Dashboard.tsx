@@ -1,5 +1,3 @@
-import { useState } from "react";
-import { format } from "date-fns";
 import { FamilyDetailsForm } from "./FamilyDetailsForm";
 import { TaskForm } from "./TaskForm";
 import { ActivityRecorder } from "./ActivityRecorder";
@@ -7,113 +5,49 @@ import { TaskTrends } from "./TaskTrends";
 import { DashboardHeader } from "./dashboard/DashboardHeader";
 import { TaskFilters } from "./dashboard/TaskFilters";
 import { TaskGroups } from "./dashboard/TaskGroups";
-import { Task } from "@/types/task";
-
-interface FamilyMember {
-  name: string;
-  role: string;
-}
-
-interface TaskRecord {
-  taskId: string;
-  date: string;
-  completed: boolean;
-  completedBy: string;
-}
+import { useDashboardState } from "@/hooks/useDashboardState";
+import { useDashboardHandlers } from "@/hooks/useDashboardHandlers";
+import { groupTasks } from "@/utils/taskGrouping";
 
 export const Dashboard = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [showFamilyForm, setShowFamilyForm] = useState(true);
-  const [showTaskForm, setShowTaskForm] = useState(false);
-  const [showActivityRecorder, setShowActivityRecorder] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [familyData, setFamilyData] = useState<{ familyName: string; members: FamilyMember[] } | null>(null);
-  const [taskRecords, setTaskRecords] = useState<TaskRecord[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [showEditFamily, setShowEditFamily] = useState(false);
-  const [groupBy, setGroupBy] = useState<"individual" | "shared">("individual");
-  const [showTrends, setShowTrends] = useState(false);
-  const [trendsTimeframe, setTrendsTimeframe] = useState<"week" | "month">("week");
+  const {
+    tasks,
+    setTasks,
+    showFamilyForm,
+    setShowFamilyForm,
+    showTaskForm,
+    setShowTaskForm,
+    showActivityRecorder,
+    setShowActivityRecorder,
+    editingTask,
+    setEditingTask,
+    familyData,
+    setFamilyData,
+    taskRecords,
+    showEditFamily,
+    setShowEditFamily,
+    groupBy,
+    setGroupBy,
+    showTrends,
+    setShowTrends,
+    trendsTimeframe,
+    setTrendsTimeframe,
+  } = useDashboardState();
 
-  const handleFamilySubmit = (data: { familyName: string; members: FamilyMember[] }) => {
-    setFamilyData(data);
-    if (familyData) {
-      const oldToNewNames = new Map(
-        familyData.members.map((oldMember) => {
-          const newMember = data.members.find((m) => m.role === oldMember.role);
-          return [oldMember.name, newMember?.name || oldMember.name];
-        })
-      );
-
-      setTasks(tasks.map(task => ({
-        ...task,
-        assignedTo: task.assignedTo.map(name => oldToNewNames.get(name) || name)
-      })));
-    }
-    setShowFamilyForm(false);
-    setShowEditFamily(false);
-  };
-
-  const handleAddTask = (taskData: {
-    title: string;
-    priority: "low" | "medium" | "high";
-    dueDate?: Date;
-    startDate?: Date;
-    endDate?: Date;
-    frequency: "once" | "daily" | "weekly" | "custom";
-    customDays?: number;
-    assignedTo: string[];
-  }) => {
-    const formattedTask: Task = {
-      id: editingTask?.id ?? crypto.randomUUID(),
-      ...taskData,
-      dueDate: taskData.dueDate ? format(taskData.dueDate, "yyyy-MM-dd") : undefined,
-      startDate: taskData.startDate ? format(taskData.startDate, "yyyy-MM-dd") : undefined,
-      endDate: taskData.endDate ? format(taskData.endDate, "yyyy-MM-dd") : undefined,
-    };
-
-    if (editingTask) {
-      setTasks(tasks.map(task => task.id === editingTask.id ? formattedTask : task));
-    } else {
-      setTasks([...tasks, formattedTask]);
-    }
-    
-    setShowTaskForm(false);
-    setEditingTask(null);
-  };
-
-  const handleEditTask = (task: Task) => {
-    setEditingTask(task);
-    setShowTaskForm(true);
-  };
-
-  const groupTasksByAssignee = () => {
-    const grouped: Record<string, Task[]> = {};
-    tasks.forEach(task => {
-      task.assignedTo.forEach(assignee => {
-        if (!grouped[assignee]) {
-          grouped[assignee] = [];
-        }
-        if (!grouped[assignee].some(t => t.id === task.id)) {
-          grouped[assignee].push(task);
-        }
-      });
-    });
-    return grouped;
-  };
-
-  const groupTasks = () => {
-    if (groupBy === "shared") {
-      const sharedTasks = tasks.filter(task => task.assignedTo.length > 1);
-      const individualTasks = tasks.filter(task => task.assignedTo.length === 1);
-      
-      return {
-        "Shared Tasks": sharedTasks,
-        "Individual Tasks": individualTasks
-      };
-    }
-    return groupTasksByAssignee();
-  };
+  const {
+    handleFamilySubmit,
+    handleAddTask,
+    handleEditTask,
+  } = useDashboardHandlers({
+    tasks,
+    setTasks,
+    familyData,
+    setFamilyData,
+    setShowFamilyForm,
+    setShowEditFamily,
+    setShowTaskForm,
+    setEditingTask,
+  });
 
   if (showFamilyForm || showEditFamily) {
     return (
@@ -124,7 +58,7 @@ export const Dashboard = () => {
     );
   }
 
-  const groupedTasks = groupTasks();
+  const groupedTasks = groupTasks(tasks, groupBy);
 
   return (
     <div className="container py-8 animate-fade-in">
