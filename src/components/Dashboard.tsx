@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { TaskManager } from "./TaskManager";
-import { TaskHistory } from "./TaskHistory";
+import { TaskManager } from "./dashboard/TaskManager";
+import { TaskHistory } from "./dashboard/TaskHistory";
 import { ActivityRecorder } from "./activity-recorder/ActivityRecorder";
 import { FamilyData } from "@/types/family";
 import { Task } from "@/types/task";
@@ -26,7 +26,7 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
   };
 
   const handleViewHistory = () => {
-    setShowActivityRecorder(false); // Close activity recorder when opening history
+    setShowActivityRecorder(false);
     setShowHistory(true);
   };
 
@@ -70,6 +70,7 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
         <TaskHistory
           records={[]}
           tasks={tasks}
+          onClose={() => setShowHistory(false)}
         />
       )}
     </div>

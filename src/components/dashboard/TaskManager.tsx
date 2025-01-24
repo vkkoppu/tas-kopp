@@ -5,7 +5,6 @@ import { Task } from "@/types/task";
 import { FamilyMember } from "@/types/family";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { format } from "date-fns";
 
 interface TaskManagerProps {
   tasks: Task[];
@@ -25,8 +24,6 @@ export const TaskManager = ({
   setShowTaskForm,
 }: TaskManagerProps) => {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-
-  console.log('TaskManager: showTaskForm state:', showTaskForm);
 
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
@@ -64,14 +61,12 @@ export const TaskManager = ({
     customDays?: number;
     assignedTo: string[];
   }) => {
-    console.log('TaskManager: Handling task submission:', taskData);
     try {
       if (!familyId) {
         toast.error("Missing family ID");
         return;
       }
 
-      // Format dates for database
       const formattedData = {
         family_id: familyId,
         title: taskData.title,
@@ -83,9 +78,6 @@ export const TaskManager = ({
         end_date: taskData.endDate ? format(taskData.endDate, "yyyy-MM-dd") : null,
       };
 
-      console.log('Creating task with data:', formattedData);
-
-      // Create task
       const { data: newTask, error: taskError } = await supabase
         .from('tasks')
         .insert(formattedData)
@@ -98,7 +90,6 @@ export const TaskManager = ({
         return;
       }
 
-      // Create assignments
       const assignments = taskData.assignedTo.map(memberName => {
         const member = familyMembers.find(m => m.name === memberName);
         if (!member) {
@@ -120,13 +111,11 @@ export const TaskManager = ({
           console.error('Error creating task assignments:', assignmentError);
           toast.error("Failed to assign task to family members");
           
-          // Clean up the task since assignments failed
           await supabase.from('tasks').delete().eq('id', newTask.id);
           return;
         }
       }
 
-      // Format task for UI
       const formattedTask: Task = {
         id: newTask.id,
         title: taskData.title,
@@ -154,14 +143,10 @@ export const TaskManager = ({
       {showTaskForm && (
         <TaskForm
           onCancel={() => {
-            console.log('TaskManager: Canceling task form...');
             setShowTaskForm(false);
             setEditingTask(null);
           }}
-          onSubmit={(taskData) => {
-            console.log('TaskManager: Form submitted, calling handleSubmit...');
-            handleSubmit(taskData);
-          }}
+          onSubmit={handleSubmit}
           editingTask={editingTask}
           tasks={tasks}
           setTasks={setTasks}
@@ -170,11 +155,13 @@ export const TaskManager = ({
         />
       )}
 
-      <TaskGroups
-        groupedTasks={tasks}
-        onEditTask={handleEditTask}
-        onDeleteTask={handleDeleteTask}
-      />
+      {tasks.length > 0 && (
+        <TaskGroups
+          groupedTasks={tasks}
+          onEditTask={handleEditTask}
+          onDeleteTask={handleDeleteTask}
+        />
+      )}
     </div>
   );
 };
