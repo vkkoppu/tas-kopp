@@ -63,6 +63,8 @@ export const TaskManager = ({
     assignedTo: string[];
   }) => {
     try {
+      console.log('Creating task with data:', { ...taskData, familyId });
+
       // Format dates based on frequency
       const dueDate = taskData.frequency === "once" ? taskData.dueDate : null;
       const startDate = taskData.frequency !== "once" ? taskData.startDate : null;
@@ -81,21 +83,29 @@ export const TaskManager = ({
           start_date: startDate ? format(startDate, "yyyy-MM-dd") : null,
           end_date: endDate ? format(endDate, "yyyy-MM-dd") : null,
         })
-        .select()
+        .select('*')
         .maybeSingle();
 
-      if (taskError || !newTask) {
+      if (taskError) {
         console.error('Error creating task:', taskError);
         toast.error("Failed to create task");
         return;
       }
 
+      if (!newTask) {
+        console.error('No task was created');
+        toast.error("Failed to create task");
+        return;
+      }
+
+      console.log('Task created:', newTask);
+
       // Create task assignments
-      for (const memberName of taskData.assignedTo) {
+      const assignmentPromises = taskData.assignedTo.map(async (memberName) => {
         const member = familyMembers.find(m => m.name === memberName);
         if (!member) {
           console.error('Family member not found:', memberName);
-          continue;
+          return null;
         }
 
         const { error: assignmentError } = await supabase
@@ -107,7 +117,22 @@ export const TaskManager = ({
 
         if (assignmentError) {
           console.error('Error creating task assignment:', assignmentError);
+          return null;
         }
+
+        return member.name;
+      });
+
+      const assignmentResults = await Promise.all(assignmentPromises);
+      const successfulAssignments = assignmentResults.filter((result): result is string => result !== null);
+
+      if (successfulAssignments.length === 0) {
+        toast.error("Failed to assign task to any family members");
+        return;
+      }
+
+      if (successfulAssignments.length < taskData.assignedTo.length) {
+        toast.warning("Some task assignments failed");
       }
 
       // Format the task for the UI
@@ -120,7 +145,7 @@ export const TaskManager = ({
         dueDate: dueDate ? format(dueDate, "yyyy-MM-dd") : undefined,
         startDate: startDate ? format(startDate, "yyyy-MM-dd") : undefined,
         endDate: endDate ? format(endDate, "yyyy-MM-dd") : undefined,
-        assignedTo: taskData.assignedTo,
+        assignedTo: successfulAssignments,
       };
 
       setTasks([...tasks, formattedTask]);
