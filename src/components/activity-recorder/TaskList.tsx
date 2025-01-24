@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { useEffect } from "react";
 
 interface TaskListProps {
   tasks: Task[];
@@ -22,6 +23,15 @@ export const TaskList = ({
   onCompletedByChange,
   isTaskCompletedForDate,
 }: TaskListProps) => {
+  // Auto-select the family member when there's only one assignee
+  useEffect(() => {
+    tasks.forEach((task) => {
+      if (completedTasks.has(task.id) && task.assignedTo.length === 1 && !completedBy[task.id]) {
+        onCompletedByChange(task.id, task.assignedTo[0]);
+      }
+    });
+  }, [completedTasks, tasks]);
+
   return (
     <ScrollArea className="flex-1 border rounded-md p-4">
       {tasks.map((task) => {
@@ -47,7 +57,7 @@ export const TaskList = ({
                   (Assigned to: {task.assignedTo.join(", ")})
                 </span>
               </Label>
-              {completedTasks.has(task.id) && !isCompleted && (
+              {completedTasks.has(task.id) && !isCompleted && task.assignedTo.length > 1 && (
                 <Select
                   value={completedBy[task.id] || ""}
                   onValueChange={(value) => onCompletedByChange(task.id, value)}
