@@ -10,7 +10,6 @@ import { useDashboardHandlers } from "@/hooks/useDashboardHandlers";
 import { groupTasks } from "@/utils/taskGrouping";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { FamilyMember } from "@/types/family";
 import { Navigation } from "./Navigation";
 import { useFamily } from "@/hooks/use-family";
 
@@ -56,7 +55,7 @@ export const Dashboard = () => {
     setEditingTask,
   });
 
-  // Fetch task records when component mounts
+  // Always declare useEffect hooks at the top level, regardless of conditions
   useEffect(() => {
     const fetchTaskRecords = async () => {
       if (!family) return;
@@ -89,7 +88,21 @@ export const Dashboard = () => {
     };
 
     fetchTaskRecords();
-  }, [family]);
+  }, [family, setTaskRecords]);
+
+  // Always declare all useEffect hooks, even if they depend on conditions
+  useEffect(() => {
+    if (family) {
+      setFamilyData({
+        familyName: family.name,
+        members: family.members.map(member => ({
+          id: member.id,
+          name: member.name,
+          role: member.role,
+        }))
+      });
+    }
+  }, [family, setFamilyData]);
 
   // Show loading state while checking family data
   if (isLoading) {
@@ -112,20 +125,6 @@ export const Dashboard = () => {
       </>
     );
   }
-
-  // Update familyData when family is loaded
-  useEffect(() => {
-    if (family) {
-      setFamilyData({
-        familyName: family.name,
-        members: family.members.map(member => ({
-          id: member.id,
-          name: member.name,
-          role: member.role,
-        }))
-      });
-    }
-  }, [family, setFamilyData]);
 
   const groupedTasks = groupTasks(tasks, groupBy);
 
