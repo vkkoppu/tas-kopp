@@ -14,9 +14,6 @@ const AuthPage = () => {
         navigate("/");
       }
       // Handle authentication errors
-      if (event === "USER_DELETED") {
-        toast.error("Account has been deleted");
-      }
       if (event === "SIGNED_OUT") {
         toast.error("You have been signed out");
       }
@@ -24,21 +21,6 @@ const AuthPage = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
-
-  const handleError = (error: Error) => {
-    // Parse the error message from the JSON string if it exists
-    try {
-      const errorBody = JSON.parse(error.message);
-      if (errorBody.message === "Invalid login credentials") {
-        toast.error("Invalid email or password. Please try again.");
-      } else {
-        toast.error(errorBody.message || "An error occurred during authentication");
-      }
-    } catch {
-      // If parsing fails, show the original error message
-      toast.error(error.message);
-    }
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -62,7 +44,6 @@ const AuthPage = () => {
           }}
           providers={[]}
           redirectTo={window.location.origin}
-          onError={handleError}
         />
       </div>
     </div>
