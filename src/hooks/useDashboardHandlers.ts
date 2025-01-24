@@ -7,7 +7,7 @@ import { toast } from "sonner";
 interface DashboardHandlersProps {
   tasks: Task[];
   setTasks: (tasks: Task[]) => void;
-  familyData: FamilyData | null;
+  familyData: (FamilyData & { id: string }) | null;
   setFamilyData: (data: FamilyData | null) => void;
   setShowFamilyForm: (show: boolean) => void;
   setShowEditFamily: (show: boolean) => void;
