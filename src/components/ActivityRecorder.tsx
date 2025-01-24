@@ -60,6 +60,19 @@ export const ActivityRecorder = ({
 
   const handleSave = async () => {
     try {
+      // First check if we have an authenticated session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        console.error('No authenticated session:', sessionError);
+        toast({
+          title: "Authentication Error",
+          description: "Please sign in to record activities.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const newRecords = [];
       
       for (const taskId of completedTasks) {
