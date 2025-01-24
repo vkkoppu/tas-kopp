@@ -4,6 +4,7 @@ import { TaskHistory } from "@/components/dashboard/TaskHistory";
 import { ActivityRecorder } from "@/components/ActivityRecorder";
 import { FamilyData } from "@/types/family";
 import { Task } from "@/types/task";
+import { Button } from "@/components/ui/button";
 
 interface DashboardProps {
   familyData: FamilyData | null;
@@ -31,18 +32,18 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
   };
 
   return (
-    <div className="p-4">
-      <h1 className="text-3xl font-bold">Family Dashboard</h1>
-      <div className="mt-4">
-        <button onClick={handleAddTask} className="btn">
+    <div className="p-6 max-w-7xl mx-auto">
+      <h1 className="text-3xl font-bold mb-6">Family Dashboard</h1>
+      <div className="flex flex-wrap gap-4 mb-8">
+        <Button onClick={handleAddTask} variant="default">
           Add Task
-        </button>
-        <button onClick={handleRecordActivities} className="btn">
+        </Button>
+        <Button onClick={handleRecordActivities} variant="secondary">
           Record Activities
-        </button>
-        <button onClick={handleViewHistory} className="btn">
+        </Button>
+        <Button onClick={handleViewHistory} variant="secondary">
           View History
-        </button>
+        </Button>
       </div>
 
       {showTaskForm && (
