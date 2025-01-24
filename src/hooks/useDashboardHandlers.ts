@@ -55,7 +55,7 @@ export const useDashboardHandlers = ({
     assignedTo: string[];
   }) => {
     try {
-      if (!familyData) {
+      if (!familyData?.id) {
         toast.error("No family data found");
         return;
       }
@@ -78,7 +78,7 @@ export const useDashboardHandlers = ({
         .select()
         .single();
 
-      if (taskError) {
+      if (taskError || !newTask) {
         console.error('Error creating task:', taskError);
         toast.error("Failed to create task");
         return;
