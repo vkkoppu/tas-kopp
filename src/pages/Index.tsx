@@ -74,22 +74,43 @@ const Index = () => {
           return;
         }
 
-        // Format tasks data
-        const formattedTasks: Task[] = tasksData.map(task => ({
-          id: task.id,
-          title: task.title,
-          priority: task.priority,
-          frequency: task.frequency,
-          customDays: task.custom_days,
-          dueDate: task.due_date,
-          startDate: task.start_date,
-          endDate: task.end_date,
-          assignedTo: task.task_assignments
-            .map((assignment: any) => assignment.family_members?.name)
-            .filter(Boolean)
-        }));
+        console.log('Raw tasks data:', tasksData);
 
-        console.log('Fetched and formatted tasks:', formattedTasks);
+        // Format tasks data with proper type checking
+        const formattedTasks: Task[] = tasksData.map(task => {
+          // Ensure priority is one of the allowed values
+          let priority: "low" | "medium" | "high" = "medium";
+          if (task.priority === "low" || task.priority === "medium" || task.priority === "high") {
+            priority = task.priority;
+          }
+
+          // Ensure frequency is one of the allowed values
+          let frequency: "once" | "daily" | "weekly" | "custom" = "once";
+          if (
+            task.frequency === "once" ||
+            task.frequency === "daily" ||
+            task.frequency === "weekly" ||
+            task.frequency === "custom"
+          ) {
+            frequency = task.frequency;
+          }
+
+          return {
+            id: task.id,
+            title: task.title,
+            priority,
+            frequency,
+            customDays: task.custom_days || undefined,
+            dueDate: task.due_date || undefined,
+            startDate: task.start_date || undefined,
+            endDate: task.end_date || undefined,
+            assignedTo: task.task_assignments
+              .map((assignment: any) => assignment.family_members?.name)
+              .filter((name: string | undefined): name is string => Boolean(name))
+          };
+        });
+
+        console.log('Formatted tasks:', formattedTasks);
         setTasks(formattedTasks);
       } catch (error) {
         console.error('Error in fetchFamilyData:', error);
