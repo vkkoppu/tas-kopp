@@ -19,6 +19,7 @@ const Profile = () => {
   const familyData = family ? {
     familyName: family.name,
     members: family.members.map(member => ({
+      id: member.id,
       name: member.name,
       role: member.role,
     }))
