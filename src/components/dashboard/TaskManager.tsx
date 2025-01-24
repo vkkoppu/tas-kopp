@@ -68,6 +68,9 @@ export const TaskManager = ({
         return;
       }
 
+      console.log('Creating new task with data:', taskData);
+      console.log('Family members available:', familyMembers);
+
       const formattedData = {
         family_id: familyId,
         title: taskData.title,
