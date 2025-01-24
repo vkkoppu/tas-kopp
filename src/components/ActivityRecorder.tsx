@@ -64,32 +64,46 @@ export const ActivityRecorder = ({
       
       for (const taskId of completedTasks) {
         const task = tasks.find(t => t.id === taskId);
-        if (!task) continue;
+        if (!task) {
+          console.error('Task not found:', taskId);
+          continue;
+        }
 
         const memberName = completedBy[taskId];
-        if (!memberName) continue;
+        if (!memberName) {
+          console.error('No member assigned for task:', taskId);
+          continue;
+        }
 
         const familyMember = familyMembers.find(m => m.name === memberName);
-        if (!familyMember) continue;
+        if (!familyMember) {
+          console.error('Family member not found:', memberName);
+          continue;
+        }
 
-        console.log('Inserting task record:', {
+        console.log('Task details:', task);
+        console.log('Family member details:', familyMember);
+        
+        const recordData = {
           task_id: taskId,
           completed_by: familyMember.id,
           completed_at: selectedDate.toISOString()
-        });
+        };
+        
+        console.log('Inserting task record:', recordData);
 
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('task_records')
-          .insert({
-            task_id: taskId,
-            completed_by: familyMember.id,
-            completed_at: selectedDate.toISOString()
-          });
+          .insert(recordData)
+          .select()
+          .single();
 
         if (error) {
           console.error('Error details:', error);
           throw error;
         }
+
+        console.log('Successfully inserted record:', data);
 
         newRecords.push({
           taskId,
