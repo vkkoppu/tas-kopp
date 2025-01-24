@@ -1,22 +1,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { History, ListCheck, X } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "./ui/use-toast";
 import { ActivityRecorderProps } from "./activity-recorder/types";
-import { TaskList } from "./activity-recorder/TaskList";
 import { HistoryView } from "./activity-recorder/HistoryView";
-import { DateSelector } from "./activity-recorder/DateSelector";
+import { ActivityForm } from "./activity-recorder/ActivityForm";
+import { ActivityRecord } from "./activity-recorder/shared-types";
 
 export const ActivityRecorder = ({ 
   familyMembers, 
@@ -25,139 +15,11 @@ export const ActivityRecorder = ({
   records,
   onRecordAdded 
 }: ActivityRecorderProps) => {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"all" | "pending" | "completed">("all");
-  const [completedBy, setCompletedBy] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState("record");
-  const { toast } = useToast();
 
-  const isTaskCompletedForDate = (taskId: string) => {
-    const formattedDate = format(selectedDate, 'yyyy-MM-dd');
-    return records.some(record => 
-      record.taskId === taskId && 
-      record.date === formattedDate
-    );
+  const handleSave = async (newRecords: ActivityRecord[]) => {
+    onRecordAdded(newRecords);
   };
-
-  const handleTaskToggle = (taskId: string) => {
-    if (isTaskCompletedForDate(taskId)) {
-      return;
-    }
-    
-    const newCompletedTasks = new Set(completedTasks);
-    if (newCompletedTasks.has(taskId)) {
-      newCompletedTasks.delete(taskId);
-      const newCompletedBy = { ...completedBy };
-      delete newCompletedBy[taskId];
-      setCompletedBy(newCompletedBy);
-    } else {
-      newCompletedTasks.add(taskId);
-    }
-    setCompletedTasks(newCompletedTasks);
-  };
-
-  const handleSave = async () => {
-    try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError || !session) {
-        console.error('No authenticated session:', sessionError);
-        toast({
-          title: "Authentication Error",
-          description: "Please sign in to record activities.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const newRecords = [];
-      
-      for (const taskId of completedTasks) {
-        const task = tasks.find(t => t.id === taskId);
-        if (!task) {
-          console.error('Task not found:', taskId);
-          continue;
-        }
-
-        const memberName = completedBy[taskId];
-        if (!memberName) {
-          console.error('No member assigned for task:', taskId);
-          continue;
-        }
-
-        const familyMember = familyMembers.find(m => m.name === memberName);
-        if (!familyMember) {
-          console.error('Family member not found:', memberName);
-          continue;
-        }
-
-        // Format the date to match Postgres timestamp format
-        const formattedDate = format(selectedDate, "yyyy-MM-dd'T'HH:mm:ssxxx");
-        
-        const recordData = {
-          task_id: taskId,
-          completed_by: familyMember.id,
-          completed_at: formattedDate
-        };
-
-        console.log('Inserting task record:', recordData);
-        console.log('Task details:', task);
-        console.log('Family member details:', familyMember);
-
-        const { error } = await supabase
-          .from('task_records')
-          .insert(recordData);
-
-        if (error) {
-          console.error('Error details:', error);
-          throw error;
-        }
-
-        newRecords.push({
-          taskId,
-          completed: true,
-          date: format(selectedDate, 'yyyy-MM-dd'),
-          completedBy: memberName,
-        });
-      }
-
-      onRecordAdded(newRecords);
-      setCompletedTasks(new Set());
-      setCompletedBy({});
-      
-      toast({
-        title: "Success",
-        description: "Activities recorded successfully",
-      });
-    } catch (error) {
-      console.error('Error saving records:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save activities. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDateSelect = (date: Date | undefined) => {
-    setSelectedDate(date || new Date());
-    setIsCalendarOpen(false);
-    setCompletedTasks(new Set());
-  };
-
-  const filteredTasks = tasks.filter(task => {
-    const isCompleted = isTaskCompletedForDate(task.id);
-    switch (viewMode) {
-      case "pending":
-        return !isCompleted;
-      case "completed":
-        return isCompleted;
-      default:
-        return true;
-    }
-  });
 
   return (
     <Card className="fixed inset-4 z-50 flex flex-col bg-background md:inset-auto md:left-1/2 md:top-1/2 md:max-w-2xl md:-translate-x-1/2 md:-translate-y-1/2 md:h-[80vh]">
@@ -182,45 +44,12 @@ export const ActivityRecorder = ({
           </TabsList>
 
           <TabsContent value="record" className="flex-1 flex flex-col space-y-4">
-            <div className="space-y-4">
-              <Select value={viewMode} onValueChange={(value: "all" | "pending" | "completed") => setViewMode(value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter tasks" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Tasks</SelectItem>
-                  <SelectItem value="pending">Pending Tasks</SelectItem>
-                  <SelectItem value="completed">Completed Tasks</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <DateSelector
-                selectedDate={selectedDate}
-                isCalendarOpen={isCalendarOpen}
-                onCalendarOpenChange={setIsCalendarOpen}
-                onDateSelect={handleDateSelect}
-              />
-            </div>
-
-            <TaskList
-              tasks={filteredTasks}
-              completedTasks={completedTasks}
-              completedBy={completedBy}
-              onTaskToggle={handleTaskToggle}
-              onCompletedByChange={(taskId, value) => setCompletedBy({ ...completedBy, [taskId]: value })}
-              isTaskCompletedForDate={isTaskCompletedForDate}
+            <ActivityForm
+              tasks={tasks}
+              familyMembers={familyMembers}
+              onSave={handleSave}
+              records={records}
             />
-
-            <div className="pt-4 space-y-2">
-              <Button 
-                onClick={handleSave}
-                className="w-full"
-                size="lg"
-                disabled={completedTasks.size === 0}
-              >
-                Submit Activities
-              </Button>
-            </div>
           </TabsContent>
 
           <TabsContent value="history" className="flex-1 flex flex-col">
