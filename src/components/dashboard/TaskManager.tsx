@@ -66,7 +66,7 @@ export const TaskManager = ({
       console.log('Creating new task with data:', taskData);
 
       // First, insert the task
-      const { data: newTask, error: taskError } = await supabase
+      const { data: newTaskData, error: taskError } = await supabase
         .from('tasks')
         .insert([{
           family_id: familyId,
@@ -78,24 +78,25 @@ export const TaskManager = ({
           start_date: taskData.startDate ? format(taskData.startDate, "yyyy-MM-dd") : null,
           end_date: taskData.endDate ? format(taskData.endDate, "yyyy-MM-dd") : null,
         }])
-        .select()
-        .single();
+        .select();
 
-      if (taskError || !newTask) {
+      if (taskError || !newTaskData || newTaskData.length === 0) {
         console.error('Error creating task:', taskError);
         toast.error("Failed to create task");
         return;
       }
 
+      const newTask = newTaskData[0];
       console.log('Task created successfully:', newTask);
 
       // Get family members to map names to IDs
-      const { data: familyMembersData } = await supabase
+      const { data: familyMembersData, error: membersError } = await supabase
         .from('family_members')
         .select('id, name')
         .eq('family_id', familyId);
 
-      if (!familyMembersData) {
+      if (membersError || !familyMembersData) {
+        console.error('Error fetching family members:', membersError);
         toast.error("Failed to fetch family members");
         return;
       }
