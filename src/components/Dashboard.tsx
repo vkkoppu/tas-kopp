@@ -192,11 +192,16 @@ export const Dashboard = () => {
   }, [family, setFamilyData]);
 
   const handleAddTask = () => {
-    console.log('handleAddTask called in Dashboard');
+    console.log('handleAddTask called in Dashboard - before state update');
     console.log('Current showTaskForm state:', showTaskForm);
     setShowTaskForm(true);
-    console.log('showTaskForm set to true');
+    console.log('handleAddTask called in Dashboard - after state update');
+    console.log('New showTaskForm value set to true');
   };
+
+  useEffect(() => {
+    console.log('showTaskForm changed:', showTaskForm);
+  }, [showTaskForm]);
 
   if (isLoading) {
     return (

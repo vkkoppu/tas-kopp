@@ -22,10 +22,10 @@ export const DashboardHeader = ({
   showTrends,
   hasExistingTasks,
 }: DashboardHeaderProps) => {
-  const handleAddTaskClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    console.log('Add Task button clicked in DashboardHeader');
+  const handleAddTaskClick = () => {
+    console.log('Add Task button clicked in DashboardHeader - before onAddTask call');
     onAddTask();
+    console.log('Add Task button clicked in DashboardHeader - after onAddTask call');
   };
 
   return (
@@ -43,7 +43,10 @@ export const DashboardHeader = ({
           </Button>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button onClick={handleAddTaskClick} className="flex items-center gap-2">
+          <Button 
+            onClick={handleAddTaskClick} 
+            className="flex items-center gap-2"
+          >
             <ListPlus className="h-4 w-4" />
             Add Task
           </Button>
