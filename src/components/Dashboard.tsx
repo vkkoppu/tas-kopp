@@ -14,6 +14,14 @@ import { Navigation } from "./Navigation";
 import { useFamily } from "@/hooks/use-family";
 import { toast } from "sonner";
 
+// Helper function to validate priority
+const validatePriority = (priority: string): "low" | "medium" | "high" => {
+  if (priority === "low" || priority === "medium" || priority === "high") {
+    return priority;
+  }
+  return "medium"; // Default fallback
+};
+
 export const Dashboard = () => {
   const { family, isLoading } = useFamily();
   const {
@@ -94,8 +102,8 @@ export const Dashboard = () => {
         const formattedTasks = data.map(task => ({
           id: task.id,
           title: task.title,
-          priority: task.priority,
-          frequency: task.frequency,
+          priority: validatePriority(task.priority),
+          frequency: task.frequency as "once" | "daily" | "weekly" | "custom",
           customDays: task.custom_days,
           dueDate: task.due_date,
           startDate: task.start_date,
