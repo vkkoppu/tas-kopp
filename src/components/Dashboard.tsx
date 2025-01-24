@@ -192,9 +192,10 @@ export const Dashboard = () => {
   }, [family, setFamilyData]);
 
   const handleAddTask = () => {
-    console.log('handleAddTask called, current showTaskForm:', showTaskForm);
+    console.log('handleAddTask called in Dashboard');
+    console.log('Current showTaskForm state:', showTaskForm);
     setShowTaskForm(true);
-    console.log('showTaskForm set to:', true);
+    console.log('showTaskForm set to true');
   };
 
   if (isLoading) {

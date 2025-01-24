@@ -22,8 +22,9 @@ export const DashboardHeader = ({
   showTrends,
   hasExistingTasks,
 }: DashboardHeaderProps) => {
-  const handleAddTaskClick = () => {
-    console.log('Add Task button clicked');
+  const handleAddTaskClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    console.log('Add Task button clicked in DashboardHeader');
     onAddTask();
   };
 
