@@ -24,12 +24,10 @@ export const TaskGroups = ({ groupedTasks, onEditTask, onDeleteTask }: TaskGroup
 
   return (
     <div className="space-y-8">
-      {Object.entries(groups).map(([groupName, tasks]) => {
-        if (!tasks || tasks.length === 0) return null;
-        
-        return (
-          <div key={groupName} className="space-y-4 bg-muted/30 p-6 rounded-lg">
-            <h2 className="text-2xl font-semibold capitalize">{groupName}</h2>
+      {Object.entries(groups).map(([groupName, tasks]) => (
+        <div key={groupName} className="space-y-4 bg-muted/30 p-6 rounded-lg">
+          <h2 className="text-2xl font-semibold capitalize">{groupName}</h2>
+          {tasks && tasks.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {tasks.map((task) => (
                 <TaskCard
@@ -40,9 +38,13 @@ export const TaskGroups = ({ groupedTasks, onEditTask, onDeleteTask }: TaskGroup
                 />
               ))}
             </div>
-          </div>
-        );
-      })}
+          ) : (
+            <div className="text-center py-4 text-muted-foreground">
+              No tasks in this category
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 };
