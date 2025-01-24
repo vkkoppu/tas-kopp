@@ -84,10 +84,13 @@ export const ActivityRecorder = ({
         console.log('Task details:', task);
         console.log('Family member details:', familyMember);
         
+        // Format the date to match Postgres timestamp format
+        const formattedDate = format(selectedDate, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
+        
         const recordData = {
           task_id: taskId,
           completed_by: familyMember.id,
-          completed_at: selectedDate.toISOString()
+          completed_at: formattedDate
         };
         
         console.log('Inserting task record:', recordData);
