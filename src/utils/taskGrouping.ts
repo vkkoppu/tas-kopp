@@ -27,7 +27,10 @@ export const groupTasksByAssignee = (tasks: Task[]) => {
 export const groupTasks = (tasks: Task[], groupBy: "individual" | "shared") => {
   if (!Array.isArray(tasks)) {
     console.error('Invalid tasks array:', tasks);
-    return {};
+    return {
+      "Shared Tasks": [],
+      "Individual Tasks": []
+    };
   }
 
   if (groupBy === "shared") {
@@ -38,17 +41,10 @@ export const groupTasks = (tasks: Task[], groupBy: "individual" | "shared") => {
       Array.isArray(task.assignedTo) && task.assignedTo.length === 1
     );
     
-    const groups: Record<string, Task[]> = {};
-    
-    if (sharedTasks.length > 0) {
-      groups["Shared Tasks"] = sharedTasks;
-    }
-    
-    if (individualTasks.length > 0) {
-      groups["Individual Tasks"] = individualTasks;
-    }
-    
-    return groups;
+    return {
+      "Shared Tasks": sharedTasks,
+      "Individual Tasks": individualTasks
+    };
   }
   
   return groupTasksByAssignee(tasks);

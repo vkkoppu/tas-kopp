@@ -22,14 +22,6 @@ export const TaskGroups = ({ groupedTasks, onEditTask, onDeleteTask }: TaskGroup
   const groups = groupTasks(groupedTasks, "shared");
   console.log("TaskGroups - Grouped tasks:", groups);
 
-  if (Object.keys(groups).length === 0) {
-    return (
-      <div className="text-center py-8 text-muted-foreground">
-        No tasks available
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-8">
       {Object.entries(groups).map(([groupName, tasks]) => {
