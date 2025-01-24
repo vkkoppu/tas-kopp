@@ -11,7 +11,6 @@ interface TaskGroupsProps {
 export const TaskGroups = ({ groupedTasks, onEditTask, onDeleteTask }: TaskGroupsProps) => {
   console.log("TaskGroups - Received tasks:", groupedTasks);
   
-  // Ensure we have tasks to display
   if (!groupedTasks || groupedTasks.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
@@ -22,6 +21,14 @@ export const TaskGroups = ({ groupedTasks, onEditTask, onDeleteTask }: TaskGroup
 
   const groups = groupTasks(groupedTasks, "shared");
   console.log("TaskGroups - Grouped tasks:", groups);
+
+  if (Object.keys(groups).length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        No tasks available
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
