@@ -68,7 +68,7 @@ export const TaskManager = ({
       // First, insert the task
       const { data: newTask, error: taskError } = await supabase
         .from('tasks')
-        .insert({
+        .insert([{
           family_id: familyId,
           title: taskData.title,
           priority: taskData.priority,
@@ -77,7 +77,7 @@ export const TaskManager = ({
           due_date: taskData.dueDate ? format(taskData.dueDate, "yyyy-MM-dd") : null,
           start_date: taskData.startDate ? format(taskData.startDate, "yyyy-MM-dd") : null,
           end_date: taskData.endDate ? format(taskData.endDate, "yyyy-MM-dd") : null,
-        })
+        }])
         .select()
         .single();
 
