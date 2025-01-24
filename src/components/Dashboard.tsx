@@ -8,6 +8,8 @@ import { TaskGroups } from "./dashboard/TaskGroups";
 import { useDashboardState } from "@/hooks/useDashboardState";
 import { useDashboardHandlers } from "@/hooks/useDashboardHandlers";
 import { groupTasks } from "@/utils/taskGrouping";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Dashboard = () => {
   const {
@@ -24,6 +26,7 @@ export const Dashboard = () => {
     familyData,
     setFamilyData,
     taskRecords,
+    setTaskRecords,
     showEditFamily,
     setShowEditFamily,
     groupBy,
@@ -48,6 +51,41 @@ export const Dashboard = () => {
     setShowTaskForm,
     setEditingTask,
   });
+
+  // Fetch task records when component mounts
+  useEffect(() => {
+    const fetchTaskRecords = async () => {
+      if (!familyData) return;
+      
+      const { data, error } = await supabase
+        .from('task_records')
+        .select(`
+          id,
+          task_id,
+          completed_by,
+          completed_at,
+          tasks (title),
+          family_members (name)
+        `)
+        .order('completed_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching task records:', error);
+        return;
+      }
+
+      const formattedRecords = data.map(record => ({
+        taskId: record.task_id,
+        completed: true,
+        date: new Date(record.completed_at).toISOString().split('T')[0],
+        completedBy: record.family_members?.name || 'Unknown',
+      }));
+
+      setTaskRecords(formattedRecords);
+    };
+
+    fetchTaskRecords();
+  }, [familyData]);
 
   if (showFamilyForm || showEditFamily) {
     return (
@@ -120,6 +158,8 @@ export const Dashboard = () => {
           familyMembers={familyData.members}
           tasks={tasks}
           onClose={() => setShowActivityRecorder(false)}
+          records={taskRecords}
+          onRecordAdded={(newRecords) => setTaskRecords([...taskRecords, ...newRecords])}
         />
       )}
     </div>

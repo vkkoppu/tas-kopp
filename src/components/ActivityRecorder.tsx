@@ -12,7 +12,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, History, ListCheck, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -22,6 +22,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Task } from "@/types/task";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "./ui/use-toast";
 
 interface ActivityRecord {
   taskId: string;
@@ -31,19 +33,27 @@ interface ActivityRecord {
 }
 
 interface ActivityRecorderProps {
-  familyMembers: { name: string; role: string }[];
+  familyMembers: { id: string; name: string; role: string }[];
   tasks: Task[];
   onClose: () => void;
+  records: ActivityRecord[];
+  onRecordAdded: (newRecords: ActivityRecord[]) => void;
 }
 
-export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityRecorderProps) => {
+export const ActivityRecorder = ({ 
+  familyMembers, 
+  tasks, 
+  onClose,
+  records,
+  onRecordAdded 
+}: ActivityRecorderProps) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
-  const [records, setRecords] = useState<ActivityRecord[]>([]);
-  const [activeTab, setActiveTab] = useState("record");
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"all" | "pending" | "completed">("all");
   const [completedBy, setCompletedBy] = useState<Record<string, string>>({});
+  const [activeTab, setActiveTab] = useState("record");
+  const { toast } = useToast();
 
   const isTaskCompletedForDate = (taskId: string, date: Date) => {
     const formattedDate = format(date, 'yyyy-MM-dd');
@@ -70,16 +80,48 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
     setCompletedTasks(newCompletedTasks);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const newRecords = Array.from(completedTasks).map(taskId => ({
       taskId,
       completed: true,
       date: format(selectedDate, 'yyyy-MM-dd'),
       completedBy: completedBy[taskId] || '',
     }));
-    setRecords([...records, ...newRecords]);
-    setCompletedTasks(new Set());
-    setCompletedBy({});
+
+    try {
+      // Save records to Supabase
+      const task = tasks.find(t => t.id === newRecords[0]?.taskId);
+      if (task) {
+        const familyMember = familyMembers.find(m => m.name === newRecords[0]?.completedBy);
+        if (familyMember) {
+          const { error } = await supabase
+            .from('task_records')
+            .insert({
+              task_id: task.id,
+              completed_by: familyMember.id,
+              completed_at: new Date().toISOString()
+            });
+
+          if (error) throw error;
+        }
+      }
+
+      onRecordAdded(newRecords);
+      setCompletedTasks(new Set());
+      setCompletedBy({});
+      
+      toast({
+        title: "Success",
+        description: "Activities recorded successfully",
+      });
+    } catch (error) {
+      console.error('Error saving records:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save activities",
+        variant: "destructive",
+      });
+    }
   };
 
   const getTaskTitle = (taskId: string) => {
@@ -107,29 +149,38 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
 
   return (
     <Card className="fixed inset-4 z-50 flex flex-col bg-background md:inset-auto md:left-1/2 md:top-1/2 md:max-w-2xl md:-translate-x-1/2 md:-translate-y-1/2 md:h-[80vh]">
-      <div className="flex flex-col h-full p-6">
-        <h2 className="text-2xl font-bold mb-4">Activity Manager</h2>
-        
+      <div className="flex items-center justify-between p-4 border-b">
+        <h2 className="text-2xl font-bold">Activity Manager</h2>
+        <Button variant="ghost" size="icon" onClick={onClose}>
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+      
+      <div className="flex-1 flex flex-col p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
           <TabsList className="mb-4">
-            <TabsTrigger value="record">Record Activities</TabsTrigger>
-            <TabsTrigger value="history">View History</TabsTrigger>
+            <TabsTrigger value="record" className="flex items-center gap-2">
+              <ListCheck className="h-4 w-4" />
+              Record Activities
+            </TabsTrigger>
+            <TabsTrigger value="history" className="flex items-center gap-2">
+              <History className="h-4 w-4" />
+              View History
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="record" className="flex-1 flex flex-col space-y-4">
             <div className="space-y-4">
-              <div>
-                <Label>Filter Tasks</Label>
-                <select 
-                  className="w-full p-2 border rounded-md mt-1"
-                  value={viewMode}
-                  onChange={(e) => setViewMode(e.target.value as "all" | "pending" | "completed")}
-                >
-                  <option value="all">All Tasks</option>
-                  <option value="pending">Pending Tasks</option>
-                  <option value="completed">Completed Tasks</option>
-                </select>
-              </div>
+              <Select value={viewMode} onValueChange={(value: "all" | "pending" | "completed") => setViewMode(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter tasks" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Tasks</SelectItem>
+                  <SelectItem value="pending">Pending Tasks</SelectItem>
+                  <SelectItem value="completed">Completed Tasks</SelectItem>
+                </SelectContent>
+              </Select>
 
               <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                 <PopoverTrigger asChild>
@@ -155,64 +206,57 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
               </Popover>
             </div>
 
-            <div className="flex-1 min-h-0 border rounded-md">
-              <ScrollArea className="h-[40vh] p-4">
-                {filteredTasks.map((task) => {
-                  const isCompleted = isTaskCompletedForDate(task.id, selectedDate);
-                  return (
-                    <div key={task.id} className="flex items-center space-x-2 py-2">
-                      <Checkbox
-                        id={`task-${task.id}`}
-                        checked={isCompleted || completedTasks.has(task.id)}
-                        onCheckedChange={() => handleTaskToggle(task.id)}
-                        disabled={isCompleted}
-                      />
-                      <div className="flex-1">
-                        <Label 
-                          htmlFor={`task-${task.id}`} 
-                          className={cn(
-                            "flex-1",
-                            isCompleted && "text-muted-foreground line-through"
-                          )}
-                        >
-                          <span className="font-medium">{task.title}</span>
-                          <span className="ml-2 text-sm text-muted-foreground">
-                            (Assigned to: {task.assignedTo.join(", ")})
-                          </span>
-                          {isCompleted && (
-                            <span className="ml-2 text-sm text-muted-foreground">
-                              (Completed by: {records.find(r => r.taskId === task.id && r.date === format(selectedDate, 'yyyy-MM-dd'))?.completedBy})
-                            </span>
-                          )}
-                        </Label>
-                        {completedTasks.has(task.id) && !isCompleted && (
-                          <Select
-                            value={completedBy[task.id] || ""}
-                            onValueChange={(value) => setCompletedBy({ ...completedBy, [task.id]: value })}
-                          >
-                            <SelectTrigger className="mt-2">
-                              <SelectValue placeholder="Select who completed this task" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {task.assignedTo.map((member) => (
-                                <SelectItem key={member} value={member}>
-                                  {member}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+            <ScrollArea className="flex-1 border rounded-md p-4">
+              {filteredTasks.map((task) => {
+                const isCompleted = isTaskCompletedForDate(task.id, selectedDate);
+                return (
+                  <div key={task.id} className="flex items-center space-x-2 py-2 border-b last:border-0">
+                    <Checkbox
+                      id={`task-${task.id}`}
+                      checked={isCompleted || completedTasks.has(task.id)}
+                      onCheckedChange={() => handleTaskToggle(task.id)}
+                      disabled={isCompleted}
+                    />
+                    <div className="flex-1">
+                      <Label 
+                        htmlFor={`task-${task.id}`} 
+                        className={cn(
+                          "flex-1",
+                          isCompleted && "text-muted-foreground line-through"
                         )}
-                      </div>
+                      >
+                        {task.title}
+                        <span className="ml-2 text-sm text-muted-foreground">
+                          (Assigned to: {task.assignedTo.join(", ")})
+                        </span>
+                      </Label>
+                      {completedTasks.has(task.id) && !isCompleted && (
+                        <Select
+                          value={completedBy[task.id] || ""}
+                          onValueChange={(value) => setCompletedBy({ ...completedBy, [task.id]: value })}
+                        >
+                          <SelectTrigger className="mt-2">
+                            <SelectValue placeholder="Select who completed this task" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {task.assignedTo.map((member) => (
+                              <SelectItem key={member} value={member}>
+                                {member}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
                     </div>
-                  );
-                })}
-                {filteredTasks.length === 0 && (
-                  <p className="text-center text-muted-foreground py-4">
-                    No {viewMode} tasks available
-                  </p>
-                )}
-              </ScrollArea>
-            </div>
+                  </div>
+                );
+              })}
+              {filteredTasks.length === 0 && (
+                <p className="text-center text-muted-foreground py-4">
+                  No {viewMode} tasks available
+                </p>
+              )}
+            </ScrollArea>
 
             <div className="pt-4 space-y-2">
               <Button 
@@ -223,13 +267,6 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
               >
                 Submit Activities
               </Button>
-              <Button 
-                variant="outline" 
-                onClick={onClose}
-                className="w-full"
-              >
-                Close
-              </Button>
             </div>
           </TabsContent>
 
@@ -238,12 +275,15 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
               {records.length > 0 ? (
                 <div className="space-y-4">
                   {records.map((record, index) => (
-                    <div key={index} className="flex items-center justify-between py-2 border-b">
-                      <div>
-                        <span className="font-medium">{getTaskTitle(record.taskId)}</span>
-                        <span className="ml-2 text-sm text-muted-foreground">
-                          Completed on: {record.date}
-                        </span>
+                    <div key={index} className="flex items-center justify-between py-2 border-b last:border-0">
+                      <div className="space-y-1">
+                        <div className="font-medium">{getTaskTitle(record.taskId)}</div>
+                        <div className="text-sm text-muted-foreground">
+                          Completed by: {record.completedBy}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Date: {record.date}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -254,13 +294,6 @@ export const ActivityRecorder = ({ familyMembers, tasks, onClose }: ActivityReco
                 </p>
               )}
             </ScrollArea>
-            <Button 
-              variant="outline" 
-              onClick={onClose}
-              className="w-full mt-4"
-            >
-              Close
-            </Button>
           </TabsContent>
         </Tabs>
       </div>
