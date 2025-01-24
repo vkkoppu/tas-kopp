@@ -88,24 +88,36 @@ export const ActivityRecorder = ({
         const task = tasks.find(t => t.id === taskId);
         if (!task) continue;
 
-        const familyMember = familyMembers.find(m => m.name === completedBy[taskId]);
+        const memberName = completedBy[taskId];
+        if (!memberName) continue;
+
+        const familyMember = familyMembers.find(m => m.name === memberName);
         if (!familyMember) continue;
+
+        console.log('Inserting task record:', {
+          task_id: taskId,
+          completed_by: familyMember.id,
+          completed_at: selectedDate.toISOString()
+        });
 
         const { error } = await supabase
           .from('task_records')
           .insert({
-            task_id: task.id,
+            task_id: taskId,
             completed_by: familyMember.id,
-            completed_at: new Date().toISOString()
+            completed_at: selectedDate.toISOString()
           });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error details:', error);
+          throw error;
+        }
 
         newRecords.push({
           taskId,
           completed: true,
           date: format(selectedDate, 'yyyy-MM-dd'),
-          completedBy: completedBy[taskId] || '',
+          completedBy: memberName,
         });
       }
 
