@@ -5,6 +5,7 @@ export interface FamilyMember {
 }
 
 export interface FamilyData {
+  id?: string;
   familyName: string;
   members: FamilyMember[];
 }

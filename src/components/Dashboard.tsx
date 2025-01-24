@@ -56,7 +56,7 @@ export const Dashboard = () => {
   } = useDashboardHandlers({
     tasks,
     setTasks,
-    familyData,
+    familyData: family ? { ...familyData, id: family.id } : null,
     setFamilyData,
     setShowFamilyForm,
     setShowEditFamily,
