@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TaskForm } from "../TaskForm";
+import { TaskForm } from "@/components/TaskForm";
 import { TaskGroups } from "./TaskGroups";
 import { Task } from "@/types/task";
 import { FamilyMember } from "@/types/family";
