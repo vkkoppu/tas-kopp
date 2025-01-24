@@ -161,13 +161,11 @@ export const TaskManager = ({
         />
       )}
 
-      {tasks.length > 0 && (
-        <TaskGroups
-          groupedTasks={tasks}
-          onEditTask={handleEditTask}
-          onDeleteTask={handleDeleteTask}
-        />
-      )}
+      <TaskGroups
+        groupedTasks={tasks}
+        onEditTask={handleEditTask}
+        onDeleteTask={handleDeleteTask}
+      />
     </div>
   );
 };

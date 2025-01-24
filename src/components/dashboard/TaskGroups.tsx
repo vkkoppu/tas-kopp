@@ -30,7 +30,7 @@ export const TaskGroups = ({ groupedTasks, onEditTask, onDeleteTask }: TaskGroup
         
         return (
           <div key={groupName} className="space-y-4 bg-muted/30 p-6 rounded-lg">
-            <h2 className="text-2xl font-semibold">{groupName}</h2>
+            <h2 className="text-2xl font-semibold capitalize">{groupName}</h2>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {tasks.map((task) => (
                 <TaskCard
