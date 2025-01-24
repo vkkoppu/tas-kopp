@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { TaskManager } from "./dashboard/TaskManager";
-import { TaskHistory } from "./dashboard/TaskHistory";
-import { ActivityRecorder } from "./activity-recorder/ActivityRecorder";
+import { TaskManager } from "@/components/dashboard/TaskManager";
+import { TaskHistory } from "@/components/dashboard/TaskHistory";
+import { ActivityRecorder } from "@/components/ActivityRecorder";
 import { FamilyData } from "@/types/family";
 import { Task } from "@/types/task";
 

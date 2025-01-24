@@ -5,6 +5,7 @@ import { Task } from "@/types/task";
 import { FamilyMember } from "@/types/family";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { format } from "date-fns";
 
 interface TaskManagerProps {
   tasks: Task[];
