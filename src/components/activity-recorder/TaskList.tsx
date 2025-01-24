@@ -4,14 +4,15 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { useEffect } from "react";
+import { Badge } from "../ui/badge";
+import { X } from "lucide-react";
 
 interface TaskListProps {
   tasks: Task[];
   completedTasks: Set<string>;
-  completedBy: Record<string, string>;
+  completedBy: Record<string, string[]>;  // Changed to string[] for multiple people
   onTaskToggle: (taskId: string) => void;
-  onCompletedByChange: (taskId: string, value: string) => void;
+  onCompletedByChange: (taskId: string, values: string[]) => void;  // Changed to handle multiple values
   isTaskCompletedForDate: (taskId: string) => boolean;
 }
 
@@ -23,19 +24,12 @@ export const TaskList = ({
   onCompletedByChange,
   isTaskCompletedForDate,
 }: TaskListProps) => {
-  // Auto-select the family member when there's only one assignee
-  useEffect(() => {
-    tasks.forEach((task) => {
-      if (completedTasks.has(task.id) && task.assignedTo.length === 1 && !completedBy[task.id]) {
-        onCompletedByChange(task.id, task.assignedTo[0]);
-      }
-    });
-  }, [completedTasks, tasks]);
-
   return (
     <ScrollArea className="flex-1 border rounded-md p-4">
       {tasks.map((task) => {
         const isCompleted = isTaskCompletedForDate(task.id);
+        const selectedMembers = completedBy[task.id] || [];
+
         return (
           <div key={task.id} className="flex items-center space-x-2 py-2 border-b last:border-0">
             <Checkbox
@@ -57,22 +51,50 @@ export const TaskList = ({
                   (Assigned to: {task.assignedTo.join(", ")})
                 </span>
               </Label>
-              {completedTasks.has(task.id) && !isCompleted && task.assignedTo.length > 1 && (
-                <Select
-                  value={completedBy[task.id] || ""}
-                  onValueChange={(value) => onCompletedByChange(task.id, value)}
-                >
-                  <SelectTrigger className="mt-2">
-                    <SelectValue placeholder="Select who completed this task" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {task.assignedTo.map((member) => (
-                      <SelectItem key={member} value={member}>
-                        {member}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              {completedTasks.has(task.id) && !isCompleted && (
+                <div className="mt-2 space-y-2">
+                  <Select
+                    value={selectedMembers[0] || ""}
+                    onValueChange={(value) => {
+                      const newMembers = [...selectedMembers];
+                      if (!newMembers.includes(value)) {
+                        newMembers.push(value);
+                      }
+                      onCompletedByChange(task.id, newMembers);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select who completed this task" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {task.assignedTo.map((member) => (
+                        <SelectItem key={member} value={member}>
+                          {member}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedMembers.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {selectedMembers.map((member) => (
+                        <Badge 
+                          key={member}
+                          variant="secondary"
+                          className="flex items-center gap-1"
+                        >
+                          {member}
+                          <X
+                            className="h-3 w-3 cursor-pointer"
+                            onClick={() => {
+                              const newMembers = selectedMembers.filter(m => m !== member);
+                              onCompletedByChange(task.id, newMembers);
+                            }}
+                          />
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>

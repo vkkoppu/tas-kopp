@@ -45,11 +45,14 @@ export const TaskTrends = ({ taskRecords, tasks, timeframe }: TaskTrendsProps) =
       } catch {
         return false;
       }
-    }).length;
+    });
 
+    // Count unique tasks completed on this date
+    const uniqueTaskIds = new Set(completedTasks.map(record => record.taskId));
+    
     return {
       date: format(date, 'MMM dd'),
-      completed: completedTasks
+      completed: uniqueTaskIds.size
     };
   });
 

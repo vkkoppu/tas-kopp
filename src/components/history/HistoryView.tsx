@@ -19,7 +19,7 @@ export const HistoryView = ({ records, tasks, onClose }: HistoryViewProps) => {
   };
 
   return (
-    <Card className="fixed inset-4 z-50 flex flex-col bg-background md:inset-auto md:left-1/2 md:top-1/2 md:max-w-2xl md:-translate-x-1/2 md:-translate-y-1/2 md:h-[80vh]">
+    <Card className="fixed inset-4 z-[100] flex flex-col bg-background md:inset-auto md:left-1/2 md:top-1/2 md:max-w-2xl md:-translate-x-1/2 md:-translate-y-1/2 md:h-[80vh]">
       <div className="flex items-center justify-between p-4 border-b">
         <h2 className="text-2xl font-bold">Activity History</h2>
         <Button variant="ghost" size="icon" onClick={onClose}>
