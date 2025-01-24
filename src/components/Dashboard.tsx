@@ -12,8 +12,10 @@ import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { FamilyMember } from "@/types/family";
 import { Navigation } from "./Navigation";
+import { useFamily } from "@/hooks/use-family";
 
 export const Dashboard = () => {
+  const { family, isLoading } = useFamily();
   const {
     tasks,
     setTasks,
@@ -89,7 +91,17 @@ export const Dashboard = () => {
     fetchTaskRecords();
   }, [familyData]);
 
-  if (showFamilyForm || showEditFamily) {
+  // Show loading state while checking family data
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Show family form only if no family exists or if explicitly requested
+  if (!family || showFamilyForm || showEditFamily) {
     return (
       <>
         <Navigation />
