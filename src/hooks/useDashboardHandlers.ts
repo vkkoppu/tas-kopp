@@ -86,9 +86,21 @@ export const useDashboardHandlers = ({
 
       console.log('Task created successfully:', newTask);
 
-      // Then, create task assignments
+      // Get family members to map names to IDs
+      const { data: familyMembers, error: membersError } = await supabase
+        .from('family_members')
+        .select('id, name')
+        .eq('family_id', familyData.id);
+
+      if (membersError || !familyMembers) {
+        console.error('Error fetching family members:', membersError);
+        toast.error("Failed to fetch family members");
+        return;
+      }
+
+      // Create assignments
       const assignments = taskData.assignedTo.map(memberName => {
-        const member = familyData.members.find(m => m.name === memberName);
+        const member = familyMembers.find(m => m.name === memberName);
         if (!member) {
           console.error('Family member not found:', memberName);
           return null;

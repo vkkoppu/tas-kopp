@@ -3,6 +3,7 @@ import { useFamily } from "@/hooks/use-family";
 import { Navigation } from "@/components/Navigation";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
 
 const Profile = () => {
   const { family, isLoading, updateFamily } = useFamily();
@@ -46,9 +47,18 @@ const Profile = () => {
     }
   };
 
+  const handleCancel = () => {
+    navigate("/");
+  };
+
   return (
     <div className="container py-8">
       <Navigation />
+      <div className="flex justify-end mb-4">
+        <Button variant="outline" onClick={handleCancel}>
+          Cancel
+        </Button>
+      </div>
       <FamilyDetailsForm 
         onSubmit={handleFamilySubmit}
         initialValues={familyData}
