@@ -50,17 +50,7 @@ export const TaskForm = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted with values:", {
-      title,
-      priority,
-      frequency,
-      customDays,
-      dueDate,
-      startDate,
-      endDate,
-      assignedTo
-    });
-    
+
     if (!isFormValid()) {
       toast.error("Please fill in all required fields");
       return;

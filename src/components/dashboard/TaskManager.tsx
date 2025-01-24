@@ -63,15 +63,12 @@ export const TaskManager = ({
     assignedTo: string[];
   }) => {
     try {
-      console.log('Creating new task with data:', taskData);
-      console.log('Family ID:', familyId);
-
       // Format dates based on frequency
       const dueDate = taskData.frequency === "once" ? taskData.dueDate : null;
       const startDate = taskData.frequency !== "once" ? taskData.startDate : null;
       const endDate = taskData.frequency !== "once" ? taskData.endDate : null;
 
-      // First, insert the task
+      // Create the task
       const { data: newTask, error: taskError } = await supabase
         .from('tasks')
         .insert({
@@ -85,7 +82,7 @@ export const TaskManager = ({
           end_date: endDate ? format(endDate, "yyyy-MM-dd") : null,
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (taskError || !newTask) {
         console.error('Error creating task:', taskError);
@@ -93,38 +90,27 @@ export const TaskManager = ({
         return;
       }
 
-      console.log('Task created successfully:', newTask);
+      // Create task assignments
+      for (const memberName of taskData.assignedTo) {
+        const member = familyMembers.find(m => m.name === memberName);
+        if (!member) {
+          console.error('Family member not found:', memberName);
+          continue;
+        }
 
-      // Create assignments
-      const assignments = await Promise.all(
-        taskData.assignedTo.map(async (memberName) => {
-          const member = familyMembers.find(m => m.name === memberName);
-          if (!member) {
-            console.error('Family member not found:', memberName);
-            return null;
-          }
-          
-          const { error: assignmentError } = await supabase
-            .from('task_assignments')
-            .insert({
-              task_id: newTask.id,
-              family_member_id: member.id,
-            });
+        const { error: assignmentError } = await supabase
+          .from('task_assignments')
+          .insert({
+            task_id: newTask.id,
+            family_member_id: member.id,
+          });
 
-          if (assignmentError) {
-            console.error('Error creating task assignment:', assignmentError);
-            return null;
-          }
-
-          return member;
-        })
-      );
-
-      if (assignments.some(a => a === null)) {
-        toast.error("Some assignments failed to create");
-        // Continue anyway as the task was created
+        if (assignmentError) {
+          console.error('Error creating task assignment:', assignmentError);
+        }
       }
 
+      // Format the task for the UI
       const formattedTask: Task = {
         id: newTask.id,
         title: taskData.title,
