@@ -68,7 +68,7 @@ export const TaskManager = ({
       // First, insert the task
       const { data: newTaskData, error: taskError } = await supabase
         .from('tasks')
-        .insert([{
+        .insert({
           family_id: familyId,
           title: taskData.title,
           priority: taskData.priority,
@@ -77,17 +77,17 @@ export const TaskManager = ({
           due_date: taskData.dueDate ? format(taskData.dueDate, "yyyy-MM-dd") : null,
           start_date: taskData.startDate ? format(taskData.startDate, "yyyy-MM-dd") : null,
           end_date: taskData.endDate ? format(taskData.endDate, "yyyy-MM-dd") : null,
-        }])
-        .select();
+        })
+        .select()
+        .single();
 
-      if (taskError || !newTaskData || newTaskData.length === 0) {
+      if (taskError || !newTaskData) {
         console.error('Error creating task:', taskError);
         toast.error("Failed to create task");
         return;
       }
 
-      const newTask = newTaskData[0];
-      console.log('Task created successfully:', newTask);
+      console.log('Task created successfully:', newTaskData);
 
       // Get family members to map names to IDs
       const { data: familyMembersData, error: membersError } = await supabase
@@ -109,7 +109,7 @@ export const TaskManager = ({
           return null;
         }
         return {
-          task_id: newTask.id,
+          task_id: newTaskData.id,
           family_member_id: member.id,
         };
       }).filter(Boolean);
@@ -127,7 +127,7 @@ export const TaskManager = ({
       }
 
       const formattedTask: Task = {
-        id: newTask.id,
+        id: newTaskData.id,
         title: taskData.title,
         priority: taskData.priority,
         frequency: taskData.frequency,
