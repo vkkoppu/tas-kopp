@@ -119,6 +119,7 @@ export const Dashboard = () => {
       setFamilyData({
         familyName: family.name,
         members: family.members.map(member => ({
+          id: member.id,
           name: member.name,
           role: member.role,
         }))
@@ -179,14 +180,14 @@ export const Dashboard = () => {
             setShowTaskForm(false);
             setEditingTask(null);
           }}
-          familyMembers={family.members as FamilyMember[]}
+          familyMembers={family.members}
           initialValues={editingTask}
         />
       )}
 
       {showActivityRecorder && family && (
         <ActivityRecorder
-          familyMembers={family.members as FamilyMember[]}
+          familyMembers={family.members}
           tasks={tasks}
           onClose={() => setShowActivityRecorder(false)}
           records={taskRecords}
