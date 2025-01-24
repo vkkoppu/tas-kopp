@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Navigation } from "./Navigation";
 import { useFamily } from "@/hooks/use-family";
 import { toast } from "sonner";
+import { Task } from "@/types/task";
 
 // Helper function to validate priority
 const validatePriority = (priority: string): "low" | "medium" | "high" => {
@@ -64,7 +65,27 @@ export const Dashboard = () => {
     setEditingTask,
   });
 
-  // Fetch tasks when component mounts and family changes
+  const handleDeleteTask = async (task: Task) => {
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', task.id);
+
+      if (error) {
+        console.error('Error deleting task:', error);
+        toast.error("Failed to delete task");
+        return;
+      }
+
+      setTasks(tasks.filter(t => t.id !== task.id));
+      toast.success("Task deleted successfully");
+    } catch (error) {
+      console.error('Error in handleDeleteTask:', error);
+      toast.error("Failed to delete task");
+    }
+  };
+
   useEffect(() => {
     const fetchTasks = async () => {
       if (!family) return;
@@ -233,6 +254,7 @@ export const Dashboard = () => {
         <TaskGroups
           groupedTasks={groupedTasks}
           onEditTask={handleEditTask}
+          onDeleteTask={handleDeleteTask}
         />
       ) : (
         <p className="text-center text-muted-foreground py-8">

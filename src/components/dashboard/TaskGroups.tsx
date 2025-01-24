@@ -4,9 +4,10 @@ import { Task } from "@/types/task";
 interface TaskGroupsProps {
   groupedTasks: Record<string, Task[]>;
   onEditTask: (task: Task) => void;
+  onDeleteTask: (task: Task) => void;
 }
 
-export const TaskGroups = ({ groupedTasks, onEditTask }: TaskGroupsProps) => {
+export const TaskGroups = ({ groupedTasks, onEditTask, onDeleteTask }: TaskGroupsProps) => {
   return (
     <>
       {Object.entries(groupedTasks).map(([group, tasks]) => (
@@ -24,6 +25,7 @@ export const TaskGroups = ({ groupedTasks, onEditTask }: TaskGroupsProps) => {
                 startDate={task.startDate}
                 endDate={task.endDate}
                 onEdit={() => onEditTask(task)}
+                onDelete={() => onDeleteTask(task)}
               />
             ))}
           </div>

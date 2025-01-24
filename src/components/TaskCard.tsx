@@ -1,4 +1,4 @@
-import { CalendarIcon, Users2Icon } from "lucide-react";
+import { CalendarIcon, Users2Icon, Trash2Icon } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
@@ -13,6 +13,7 @@ interface TaskCardProps {
   startDate?: string;
   endDate?: string;
   onEdit: () => void;
+  onDelete: () => void;
 }
 
 const priorityColors = {
@@ -30,6 +31,7 @@ export const TaskCard = ({
   startDate,
   endDate,
   onEdit,
+  onDelete,
 }: TaskCardProps) => {
   return (
     <Card className={cn(
@@ -65,14 +67,24 @@ export const TaskCard = ({
             )}
           </div>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onEdit}
-          className="hover:bg-background/50"
-        >
-          Edit
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onEdit}
+            className="hover:bg-background/50"
+          >
+            Edit
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onDelete}
+            className="hover:bg-destructive/20 text-destructive hover:text-destructive"
+          >
+            <Trash2Icon className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </Card>
   );
