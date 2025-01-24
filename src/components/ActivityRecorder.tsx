@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ListCheck, X } from "lucide-react";
@@ -28,7 +27,9 @@ export const ActivityRecorder = ({
         <ActivityForm
           tasks={tasks}
           familyMembers={familyMembers}
-          onSave={onRecordAdded}
+          onSave={async (newRecords) => {
+            await onRecordAdded(newRecords);
+          }}
           records={records}
         />
       </div>

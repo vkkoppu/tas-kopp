@@ -1,19 +1,22 @@
 import { TaskCard } from "../TaskCard";
 import { Task } from "@/types/task";
+import { groupTasks } from "@/utils/taskGrouping";
 
 interface TaskGroupsProps {
-  groupedTasks: Record<string, Task[]>;
+  groupedTasks: Task[];
   onEditTask: (task: Task) => void;
   onDeleteTask: (task: Task) => void;
 }
 
 export const TaskGroups = ({ groupedTasks, onEditTask, onDeleteTask }: TaskGroupsProps) => {
+  const groups = groupTasks(groupedTasks, "shared");
+
   return (
     <>
-      {Object.entries(groupedTasks).map(([group, tasks]) => (
-        <div key={group} className="space-y-4 bg-pastel-gray/30 p-6 rounded-lg mb-6">
+      {Object.entries(groups).map(([group, tasks]) => (
+        <div key={group} className="space-y-4 bg-muted/30 p-6 rounded-lg mb-6">
           <h2 className="text-2xl font-semibold">{group}</h2>
-          <div className="grid gap-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {tasks.map((task) => (
               <TaskCard
                 key={task.id}
