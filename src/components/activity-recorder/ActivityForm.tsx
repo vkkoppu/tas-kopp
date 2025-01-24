@@ -57,30 +57,26 @@ export const ActivityForm = ({ tasks, familyMembers, onSave, records }: Activity
       const newRecords = [];
       
       for (const taskId of completedTasks) {
-        const task = tasks.find(t => t.id === taskId);
-        if (!task) continue;
-
         const memberName = completedBy[taskId];
-        if (!memberName) continue;
+        if (!memberName) {
+          console.error('No member assigned for task:', taskId);
+          continue;
+        }
 
         const familyMember = familyMembers.find(m => m.name === memberName);
-        if (!familyMember) continue;
+        if (!familyMember) {
+          console.error('Family member not found:', memberName);
+          continue;
+        }
 
         const formattedDate = format(filterState.selectedDate, "yyyy-MM-dd'T'HH:mm:ssxxx");
 
-        // First verify that this task belongs to the user's family
-        const { data: taskData, error: taskError } = await supabase
-          .from('tasks')
-          .select('family_id')
-          .eq('id', taskId)
-          .single();
+        console.log('Inserting task record:', {
+          task_id: taskId,
+          completed_by: familyMember.id,
+          completed_at: formattedDate
+        });
 
-        if (taskError) {
-          console.error('Error verifying task:', taskError);
-          throw taskError;
-        }
-
-        // Then insert the task record
         const { error } = await supabase
           .from('task_records')
           .insert({
