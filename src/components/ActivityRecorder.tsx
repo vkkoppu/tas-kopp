@@ -1,19 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { CalendarIcon, History, ListCheck, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { History, ListCheck, X } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -21,24 +11,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Task } from "@/types/task";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "./ui/use-toast";
-
-interface ActivityRecord {
-  taskId: string;
-  completed: boolean;
-  date: string;
-  completedBy: string;
-}
-
-interface ActivityRecorderProps {
-  familyMembers: { id: string; name: string; role: string }[];
-  tasks: Task[];
-  onClose: () => void;
-  records: ActivityRecord[];
-  onRecordAdded: (newRecords: ActivityRecord[]) => void;
-}
+import { ActivityRecorderProps } from "./activity-recorder/types";
+import { TaskList } from "./activity-recorder/TaskList";
+import { HistoryView } from "./activity-recorder/HistoryView";
+import { DateSelector } from "./activity-recorder/DateSelector";
 
 export const ActivityRecorder = ({ 
   familyMembers, 
@@ -55,8 +33,8 @@ export const ActivityRecorder = ({
   const [activeTab, setActiveTab] = useState("record");
   const { toast } = useToast();
 
-  const isTaskCompletedForDate = (taskId: string, date: Date) => {
-    const formattedDate = format(date, 'yyyy-MM-dd');
+  const isTaskCompletedForDate = (taskId: string) => {
+    const formattedDate = format(selectedDate, 'yyyy-MM-dd');
     return records.some(record => 
       record.taskId === taskId && 
       record.date === formattedDate
@@ -64,7 +42,7 @@ export const ActivityRecorder = ({
   };
 
   const handleTaskToggle = (taskId: string) => {
-    if (isTaskCompletedForDate(taskId, selectedDate)) {
+    if (isTaskCompletedForDate(taskId)) {
       return;
     }
     
@@ -139,11 +117,6 @@ export const ActivityRecorder = ({
     }
   };
 
-  const getTaskTitle = (taskId: string) => {
-    const task = tasks.find(t => t.id === taskId);
-    return task ? task.title : 'Unknown Task';
-  };
-
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date || new Date());
     setIsCalendarOpen(false);
@@ -151,7 +124,7 @@ export const ActivityRecorder = ({
   };
 
   const filteredTasks = tasks.filter(task => {
-    const isCompleted = isTaskCompletedForDate(task.id, selectedDate);
+    const isCompleted = isTaskCompletedForDate(task.id);
     switch (viewMode) {
       case "pending":
         return !isCompleted;
@@ -197,81 +170,22 @@ export const ActivityRecorder = ({
                 </SelectContent>
               </Select>
 
-              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !selectedDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={handleDateSelect}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+              <DateSelector
+                selectedDate={selectedDate}
+                isCalendarOpen={isCalendarOpen}
+                onCalendarOpenChange={setIsCalendarOpen}
+                onDateSelect={handleDateSelect}
+              />
             </div>
 
-            <ScrollArea className="flex-1 border rounded-md p-4">
-              {filteredTasks.map((task) => {
-                const isCompleted = isTaskCompletedForDate(task.id, selectedDate);
-                return (
-                  <div key={task.id} className="flex items-center space-x-2 py-2 border-b last:border-0">
-                    <Checkbox
-                      id={`task-${task.id}`}
-                      checked={isCompleted || completedTasks.has(task.id)}
-                      onCheckedChange={() => handleTaskToggle(task.id)}
-                      disabled={isCompleted}
-                    />
-                    <div className="flex-1">
-                      <Label 
-                        htmlFor={`task-${task.id}`} 
-                        className={cn(
-                          "flex-1",
-                          isCompleted && "text-muted-foreground line-through"
-                        )}
-                      >
-                        {task.title}
-                        <span className="ml-2 text-sm text-muted-foreground">
-                          (Assigned to: {task.assignedTo.join(", ")})
-                        </span>
-                      </Label>
-                      {completedTasks.has(task.id) && !isCompleted && (
-                        <Select
-                          value={completedBy[task.id] || ""}
-                          onValueChange={(value) => setCompletedBy({ ...completedBy, [task.id]: value })}
-                        >
-                          <SelectTrigger className="mt-2">
-                            <SelectValue placeholder="Select who completed this task" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {task.assignedTo.map((member) => (
-                              <SelectItem key={member} value={member}>
-                                {member}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-              {filteredTasks.length === 0 && (
-                <p className="text-center text-muted-foreground py-4">
-                  No {viewMode} tasks available
-                </p>
-              )}
-            </ScrollArea>
+            <TaskList
+              tasks={filteredTasks}
+              completedTasks={completedTasks}
+              completedBy={completedBy}
+              onTaskToggle={handleTaskToggle}
+              onCompletedByChange={(taskId, value) => setCompletedBy({ ...completedBy, [taskId]: value })}
+              isTaskCompletedForDate={isTaskCompletedForDate}
+            />
 
             <div className="pt-4 space-y-2">
               <Button 
@@ -286,29 +200,7 @@ export const ActivityRecorder = ({
           </TabsContent>
 
           <TabsContent value="history" className="flex-1 flex flex-col">
-            <ScrollArea className="flex-1 border rounded-md p-4">
-              {records.length > 0 ? (
-                <div className="space-y-4">
-                  {records.map((record, index) => (
-                    <div key={index} className="flex items-center justify-between py-2 border-b last:border-0">
-                      <div className="space-y-1">
-                        <div className="font-medium">{getTaskTitle(record.taskId)}</div>
-                        <div className="text-sm text-muted-foreground">
-                          Completed by: {record.completedBy}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Date: {record.date}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-center text-muted-foreground py-4">
-                  No activity records yet
-                </p>
-              )}
-            </ScrollArea>
+            <HistoryView records={records} tasks={tasks} />
           </TabsContent>
         </Tabs>
       </div>
