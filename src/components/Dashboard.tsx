@@ -11,6 +11,7 @@ import { groupTasks } from "@/utils/taskGrouping";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { FamilyMember } from "@/types/family";
+import { Navigation } from "./Navigation";
 
 export const Dashboard = () => {
   const {
@@ -90,10 +91,13 @@ export const Dashboard = () => {
 
   if (showFamilyForm || showEditFamily) {
     return (
-      <FamilyDetailsForm 
-        onSubmit={handleFamilySubmit}
-        initialValues={showEditFamily ? familyData : undefined}
-      />
+      <>
+        <Navigation />
+        <FamilyDetailsForm 
+          onSubmit={handleFamilySubmit}
+          initialValues={showEditFamily ? familyData : undefined}
+        />
+      </>
     );
   }
 
@@ -101,6 +105,7 @@ export const Dashboard = () => {
 
   return (
     <div className="container py-8 animate-fade-in">
+      <Navigation />
       <DashboardHeader
         familyName={familyData?.familyName || ""}
         onEditFamily={() => setShowEditFamily(true)}

@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "./integrations/supabase/client";
 import Index from "./pages/Index";
 import AuthPage from "./pages/Auth";
+import Profile from "./pages/Profile";
 import type { User } from "@supabase/supabase-js";
 
 const queryClient = new QueryClient();
@@ -52,6 +53,10 @@ const App = () => {
             <Route
               path="/auth"
               element={!user ? <AuthPage /> : <Navigate to="/" replace />}
+            />
+            <Route
+              path="/profile"
+              element={user ? <Profile /> : <Navigate to="/auth" replace />}
             />
           </Routes>
         </BrowserRouter>

@@ -81,29 +81,32 @@ export const ActivityRecorder = ({
   };
 
   const handleSave = async () => {
-    const newRecords = Array.from(completedTasks).map(taskId => ({
-      taskId,
-      completed: true,
-      date: format(selectedDate, 'yyyy-MM-dd'),
-      completedBy: completedBy[taskId] || '',
-    }));
-
     try {
-      // Save records to Supabase
-      const task = tasks.find(t => t.id === newRecords[0]?.taskId);
-      if (task) {
-        const familyMember = familyMembers.find(m => m.name === newRecords[0]?.completedBy);
-        if (familyMember) {
-          const { error } = await supabase
-            .from('task_records')
-            .insert({
-              task_id: task.id,
-              completed_by: familyMember.id,
-              completed_at: new Date().toISOString()
-            });
+      const newRecords = [];
+      
+      for (const taskId of completedTasks) {
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) continue;
 
-          if (error) throw error;
-        }
+        const familyMember = familyMembers.find(m => m.name === completedBy[taskId]);
+        if (!familyMember) continue;
+
+        const { error } = await supabase
+          .from('task_records')
+          .insert({
+            task_id: task.id,
+            completed_by: familyMember.id,
+            completed_at: new Date().toISOString()
+          });
+
+        if (error) throw error;
+
+        newRecords.push({
+          taskId,
+          completed: true,
+          date: format(selectedDate, 'yyyy-MM-dd'),
+          completedBy: completedBy[taskId] || '',
+        });
       }
 
       onRecordAdded(newRecords);
@@ -118,7 +121,7 @@ export const ActivityRecorder = ({
       console.error('Error saving records:', error);
       toast({
         title: "Error",
-        description: "Failed to save activities",
+        description: "Failed to save activities. Please try again.",
         variant: "destructive",
       });
     }
