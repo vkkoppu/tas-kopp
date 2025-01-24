@@ -20,13 +20,7 @@ export const TaskGroups = ({ groupedTasks, onEditTask, onDeleteTask }: TaskGroup
             {tasks.map((task) => (
               <TaskCard
                 key={task.id}
-                title={task.title}
-                priority={task.priority}
-                dueDate={task.dueDate}
-                frequency={task.frequency}
-                customDays={task.customDays}
-                startDate={task.startDate}
-                endDate={task.endDate}
+                task={task}
                 onEdit={() => onEditTask(task)}
                 onDelete={() => onDeleteTask(task)}
               />

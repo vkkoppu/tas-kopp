@@ -55,8 +55,6 @@ export const TaskManager = ({
     <>
       {showTaskForm && (
         <TaskForm
-          familyId={familyId}
-          familyMembers={familyMembers}
           onClose={() => {
             setShowTaskForm(false);
             setEditingTask(null);
@@ -64,6 +62,7 @@ export const TaskManager = ({
           editingTask={editingTask}
           tasks={tasks}
           setTasks={setTasks}
+          familyMembers={familyMembers}
         />
       )}
 
