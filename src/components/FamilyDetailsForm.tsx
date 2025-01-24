@@ -11,6 +11,7 @@ import {
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { useFamily } from "@/hooks/use-family";
+import { toast } from "sonner";
 
 interface FamilyMember {
   name: string;
@@ -39,10 +40,27 @@ export const FamilyDetailsForm = ({ onSubmit, initialValues }: FamilyDetailsForm
     setMembers(newMembers);
   };
 
-  const handleDeleteMember = (index: number) => {
+  const handleDeleteMember = async (index: number) => {
     if (members.length > 1) {
-      const newMembers = members.filter((_, i) => i !== index);
-      setMembers(newMembers);
+      try {
+        const newMembers = members.filter((_, i) => i !== index);
+        setMembers(newMembers);
+        
+        // If we're updating an existing family, update it immediately
+        if (initialValues) {
+          const familyData = {
+            name: familyName,
+            members: newMembers,
+          };
+          await updateFamily.mutateAsync(familyData);
+          toast.success("Family member deleted successfully");
+        }
+      } catch (error) {
+        console.error("Error deleting family member:", error);
+        toast.error("Failed to delete family member");
+        // Revert the state if the update fails
+        setMembers(members);
+      }
     }
   };
 
@@ -66,6 +84,7 @@ export const FamilyDetailsForm = ({ onSubmit, initialValues }: FamilyDetailsForm
         onSubmit({ familyName, members });
       } catch (error) {
         console.error("Error saving family:", error);
+        toast.error("Error saving family details");
       }
     }
   };

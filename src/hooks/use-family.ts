@@ -140,7 +140,7 @@ export const useFamily = () => {
         .eq("family_id", family.id);
 
       if (deleteError) {
-        console.error("Error updating family members:", deleteError);
+        console.error("Error deleting family members:", deleteError);
         toast.error("Error updating family members");
         throw deleteError;
       }
