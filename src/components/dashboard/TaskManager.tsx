@@ -63,12 +63,20 @@ export const TaskManager = ({
     assignedTo: string[];
   }) => {
     try {
-      console.log('Creating task with data:', { ...taskData, familyId });
+      console.log('Starting task creation with data:', { ...taskData, familyId });
+
+      if (!familyId) {
+        console.error('No family ID provided');
+        toast.error("Missing family ID");
+        return;
+      }
 
       // Format dates based on frequency
       const dueDate = taskData.frequency === "once" ? taskData.dueDate : null;
       const startDate = taskData.frequency !== "once" ? taskData.startDate : null;
       const endDate = taskData.frequency !== "once" ? taskData.endDate : null;
+
+      console.log('Formatted dates:', { dueDate, startDate, endDate });
 
       // Create the task
       const { data: newTask, error: taskError } = await supabase
@@ -88,46 +96,61 @@ export const TaskManager = ({
 
       if (taskError) {
         console.error('Error creating task:', taskError);
-        toast.error("Failed to create task");
+        toast.error(`Failed to create task: ${taskError.message}`);
         return;
       }
 
       if (!newTask) {
         console.error('No task was created');
-        toast.error("Failed to create task");
+        toast.error("Failed to create task - no data returned");
         return;
       }
 
-      console.log('Task created:', newTask);
+      console.log('Task created successfully:', newTask);
 
-      // Create task assignments
-      const assignmentPromises = taskData.assignedTo.map(async (memberName) => {
-        const member = familyMembers.find(m => m.name === memberName);
-        if (!member) {
-          console.error('Family member not found:', memberName);
-          return null;
-        }
+      // Find family members and create assignments
+      const memberAssignments = await Promise.all(
+        taskData.assignedTo.map(async (memberName) => {
+          const member = familyMembers.find(m => m.name === memberName);
+          if (!member) {
+            console.error('Family member not found:', memberName);
+            return null;
+          }
 
-        const { error: assignmentError } = await supabase
-          .from('task_assignments')
-          .insert({
-            task_id: newTask.id,
-            family_member_id: member.id,
-          });
+          console.log('Creating assignment for member:', member);
 
-        if (assignmentError) {
-          console.error('Error creating task assignment:', assignmentError);
-          return null;
-        }
+          const { error: assignmentError } = await supabase
+            .from('task_assignments')
+            .insert({
+              task_id: newTask.id,
+              family_member_id: member.id,
+            });
 
-        return member.name;
-      });
+          if (assignmentError) {
+            console.error('Error creating task assignment:', assignmentError);
+            return null;
+          }
 
-      const assignmentResults = await Promise.all(assignmentPromises);
-      const successfulAssignments = assignmentResults.filter((result): result is string => result !== null);
+          console.log('Assignment created for:', memberName);
+          return member.name;
+        })
+      );
+
+      const successfulAssignments = memberAssignments.filter((name): name is string => name !== null);
 
       if (successfulAssignments.length === 0) {
+        console.error('No assignments were created');
         toast.error("Failed to assign task to any family members");
+        
+        // Clean up the task since no assignments were created
+        const { error: deleteError } = await supabase
+          .from('tasks')
+          .delete()
+          .eq('id', newTask.id);
+
+        if (deleteError) {
+          console.error('Error cleaning up task:', deleteError);
+        }
         return;
       }
 
@@ -148,13 +171,15 @@ export const TaskManager = ({
         assignedTo: successfulAssignments,
       };
 
+      console.log('Final formatted task:', formattedTask);
+
       setTasks([...tasks, formattedTask]);
       setShowTaskForm(false);
       setEditingTask(null);
       toast.success("Task created successfully");
     } catch (error) {
       console.error('Error in handleSubmit:', error);
-      toast.error("Failed to create task");
+      toast.error("An unexpected error occurred while creating the task");
     }
   };
 
