@@ -10,6 +10,7 @@ import { useDashboardHandlers } from "@/hooks/useDashboardHandlers";
 import { groupTasks } from "@/utils/taskGrouping";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { FamilyMember } from "@/types/family";
 
 export const Dashboard = () => {
   const {
@@ -148,14 +149,14 @@ export const Dashboard = () => {
             setShowTaskForm(false);
             setEditingTask(null);
           }}
-          familyMembers={familyData.members}
+          familyMembers={familyData.members as FamilyMember[]}
           initialValues={editingTask}
         />
       )}
 
       {showActivityRecorder && familyData && (
         <ActivityRecorder
-          familyMembers={familyData.members}
+          familyMembers={familyData.members as FamilyMember[]}
           tasks={tasks}
           onClose={() => setShowActivityRecorder(false)}
           records={taskRecords}

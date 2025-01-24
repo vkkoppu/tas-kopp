@@ -1,22 +1,12 @@
 import { useState } from "react";
-import { format } from "date-fns";
 import { Task } from "@/types/task";
-
-interface FamilyMember {
-  name: string;
-  role: string;
-}
+import { FamilyData } from "@/types/family";
 
 export interface TaskRecord {
   taskId: string;
   date: string;
   completed: boolean;
   completedBy: string;
-}
-
-export interface FamilyData {
-  familyName: string;
-  members: FamilyMember[];
 }
 
 export const useDashboardState = () => {
