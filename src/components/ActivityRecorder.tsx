@@ -60,7 +60,6 @@ export const ActivityRecorder = ({
 
   const handleSave = async () => {
     try {
-      // First check if we have an authenticated session
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError || !session) {
@@ -94,19 +93,18 @@ export const ActivityRecorder = ({
           continue;
         }
 
-        console.log('Task details:', task);
-        console.log('Family member details:', familyMember);
-        
         // Format the date to match Postgres timestamp format
-        const formattedDate = format(selectedDate, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
+        const formattedDate = format(selectedDate, "yyyy-MM-dd'T'HH:mm:ssxxx");
         
         const recordData = {
           task_id: taskId,
           completed_by: familyMember.id,
           completed_at: formattedDate
         };
-        
+
         console.log('Inserting task record:', recordData);
+        console.log('Task details:', task);
+        console.log('Family member details:', familyMember);
 
         const { error } = await supabase
           .from('task_records')
@@ -116,8 +114,6 @@ export const ActivityRecorder = ({
           console.error('Error details:', error);
           throw error;
         }
-
-        console.log('Successfully inserted record for task:', taskId);
 
         newRecords.push({
           taskId,
