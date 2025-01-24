@@ -88,19 +88,35 @@ export const Dashboard = () => {
 
   const cleanupOrphanedTasks = async (familyId: string) => {
     try {
-      // Get tasks without assignments
-      const { data: orphanedTasks, error: fetchError } = await supabase
+      // First, get all tasks for this family
+      const { data: familyTasks, error: fetchError } = await supabase
         .from('tasks')
         .select('id')
-        .eq('family_id', familyId)
-        .not('task_assignments', 'cs', '{}');
+        .eq('family_id', familyId);
 
       if (fetchError) {
-        console.error('Error fetching orphaned tasks:', fetchError);
+        console.error('Error fetching tasks:', fetchError);
         return;
       }
 
-      if (orphanedTasks && orphanedTasks.length > 0) {
+      if (!familyTasks || familyTasks.length === 0) return;
+
+      // Then, get tasks that have assignments
+      const { data: tasksWithAssignments, error: assignmentsError } = await supabase
+        .from('task_assignments')
+        .select('task_id')
+        .in('task_id', familyTasks.map(t => t.id));
+
+      if (assignmentsError) {
+        console.error('Error fetching task assignments:', assignmentsError);
+        return;
+      }
+
+      // Find tasks without assignments
+      const assignedTaskIds = new Set(tasksWithAssignments?.map(t => t.task_id) || []);
+      const orphanedTasks = familyTasks.filter(task => !assignedTaskIds.has(task.id));
+
+      if (orphanedTasks.length > 0) {
         const { error: deleteError } = await supabase
           .from('tasks')
           .delete()
