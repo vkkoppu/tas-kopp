@@ -22,6 +22,7 @@ export const useDashboardState = () => {
   const [groupBy, setGroupBy] = useState<"individual" | "shared">("individual");
   const [showTrends, setShowTrends] = useState(false);
   const [trendsTimeframe, setTrendsTimeframe] = useState<"week" | "month">("week");
+  const [showHistory, setShowHistory] = useState(false);
 
   return {
     tasks,
@@ -48,5 +49,7 @@ export const useDashboardState = () => {
     setShowTrends,
     trendsTimeframe,
     setTrendsTimeframe,
+    showHistory,
+    setShowHistory,
   };
 };

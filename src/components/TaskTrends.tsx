@@ -25,7 +25,6 @@ export const TaskTrends = ({ taskRecords, tasks, timeframe }: TaskTrendsProps) =
   const daysToShow = timeframe === 'week' ? 7 : 30;
   const today = new Date();
   
-  // Ensure we're working with valid dates from taskRecords
   const validRecords = taskRecords.filter(record => {
     try {
       parseISO(record.date);
@@ -55,16 +54,20 @@ export const TaskTrends = ({ taskRecords, tasks, timeframe }: TaskTrendsProps) =
   });
 
   return (
-    <Card className="p-6 bg-pastel-blue/20">
+    <Card className="p-6 bg-pastel-blue/20 overflow-x-auto">
       <h3 className="text-lg font-semibold mb-4">Task Completion Trends</h3>
-      <div className="h-[300px]">
+      <div className="h-[300px] min-w-[600px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data}>
+          <LineChart data={data} margin={{ right: 30 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
             <XAxis 
               dataKey="date"
               tick={{ fill: 'hsl(var(--foreground))' }}
               stroke="#94A3B8"
+              interval={0}
+              angle={-45}
+              textAnchor="end"
+              height={60}
             />
             <YAxis 
               tick={{ fill: 'hsl(var(--foreground))' }}

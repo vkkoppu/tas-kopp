@@ -1,27 +1,16 @@
 import { FamilyDetailsForm } from "./FamilyDetailsForm";
-import { TaskForm } from "./TaskForm";
 import { ActivityRecorder } from "./ActivityRecorder";
 import { TaskTrends } from "./TaskTrends";
 import { DashboardHeader } from "./dashboard/DashboardHeader";
 import { TaskFilters } from "./dashboard/TaskFilters";
-import { TaskGroups } from "./dashboard/TaskGroups";
 import { useDashboardState } from "@/hooks/useDashboardState";
-import { useDashboardHandlers } from "@/hooks/useDashboardHandlers";
-import { groupTasks } from "@/utils/taskGrouping";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Navigation } from "./Navigation";
 import { useFamily } from "@/hooks/use-family";
 import { toast } from "sonner";
-import { Task } from "@/types/task";
-
-// Helper function to validate priority
-const validatePriority = (priority: string): "low" | "medium" | "high" => {
-  if (priority === "low" || priority === "medium" || priority === "high") {
-    return priority;
-  }
-  return "medium"; // Default fallback
-};
+import { TaskManager } from "./dashboard/TaskManager";
+import { HistoryView } from "./history/HistoryView";
 
 export const Dashboard = () => {
   const { family, isLoading } = useFamily();
@@ -34,8 +23,6 @@ export const Dashboard = () => {
     setShowTaskForm,
     showActivityRecorder,
     setShowActivityRecorder,
-    editingTask,
-    setEditingTask,
     familyData,
     setFamilyData,
     taskRecords,
@@ -48,47 +35,12 @@ export const Dashboard = () => {
     setShowTrends,
     trendsTimeframe,
     setTrendsTimeframe,
+    showHistory,
+    setShowHistory,
   } = useDashboardState();
-
-  const {
-    handleFamilySubmit,
-    handleAddTask,
-    handleEditTask,
-  } = useDashboardHandlers({
-    tasks,
-    setTasks,
-    familyData: family ? { ...familyData, id: family.id } : null,
-    setFamilyData,
-    setShowFamilyForm,
-    setShowEditFamily,
-    setShowTaskForm,
-    setEditingTask,
-  });
-
-  const handleDeleteTask = async (task: Task) => {
-    try {
-      const { error } = await supabase
-        .from('tasks')
-        .delete()
-        .eq('id', task.id);
-
-      if (error) {
-        console.error('Error deleting task:', error);
-        toast.error("Failed to delete task");
-        return;
-      }
-
-      setTasks(tasks.filter(t => t.id !== task.id));
-      toast.success("Task deleted successfully");
-    } catch (error) {
-      console.error('Error in handleDeleteTask:', error);
-      toast.error("Failed to delete task");
-    }
-  };
 
   const cleanupOrphanedTasks = async (familyId: string) => {
     try {
-      // First, get all tasks for this family
       const { data: familyTasks, error: fetchError } = await supabase
         .from('tasks')
         .select('id')
@@ -101,7 +53,6 @@ export const Dashboard = () => {
 
       if (!familyTasks || familyTasks.length === 0) return;
 
-      // Then, get tasks that have assignments
       const { data: tasksWithAssignments, error: assignmentsError } = await supabase
         .from('task_assignments')
         .select('task_id')
@@ -112,7 +63,6 @@ export const Dashboard = () => {
         return;
       }
 
-      // Find tasks without assignments
       const assignedTaskIds = new Set(tasksWithAssignments?.map(t => t.task_id) || []);
       const orphanedTasks = familyTasks.filter(task => !assignedTaskIds.has(task.id));
 
@@ -172,7 +122,7 @@ export const Dashboard = () => {
         const formattedTasks = data.map(task => ({
           id: task.id,
           title: task.title,
-          priority: validatePriority(task.priority),
+          priority: task.priority as "low" | "medium" | "high",
           frequency: task.frequency as "once" | "daily" | "weekly" | "custom",
           customDays: task.custom_days,
           dueDate: task.due_date,
@@ -184,8 +134,6 @@ export const Dashboard = () => {
         }));
 
         setTasks(formattedTasks);
-        
-        // Run cleanup after fetching tasks
         await cleanupOrphanedTasks(family.id);
       } catch (error) {
         console.error('Error in fetchTasks:', error);
@@ -196,7 +144,6 @@ export const Dashboard = () => {
     fetchTasks();
   }, [family, setTasks]);
 
-  // Always declare useEffect hooks at the top level, regardless of conditions
   useEffect(() => {
     const fetchTaskRecords = async () => {
       if (!family) return;
@@ -231,7 +178,6 @@ export const Dashboard = () => {
     fetchTaskRecords();
   }, [family, setTaskRecords]);
 
-  // Always declare all useEffect hooks, even if they depend on conditions
   useEffect(() => {
     if (family) {
       setFamilyData({
@@ -245,7 +191,6 @@ export const Dashboard = () => {
     }
   }, [family, setFamilyData]);
 
-  // Show loading state while checking family data
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -254,20 +199,17 @@ export const Dashboard = () => {
     );
   }
 
-  // Show family form only if no family exists
   if (!family) {
     return (
       <>
         <Navigation />
         <FamilyDetailsForm 
-          onSubmit={handleFamilySubmit}
+          onSubmit={() => {}}
           initialValues={undefined}
         />
       </>
     );
   }
-
-  const groupedTasks = groupTasks(tasks, groupBy);
 
   return (
     <div className="container py-8 animate-fade-in">
@@ -277,6 +219,7 @@ export const Dashboard = () => {
         onEditFamily={() => setShowEditFamily(true)}
         onAddTask={() => setShowTaskForm(true)}
         onRecordActivities={() => setShowActivityRecorder(true)}
+        onViewHistory={() => setShowHistory(true)}
         onToggleTrends={() => setShowTrends(!showTrends)}
         showTrends={showTrends}
         hasExistingTasks={tasks.length > 0}
@@ -303,10 +246,13 @@ export const Dashboard = () => {
       )}
 
       {tasks.length > 0 ? (
-        <TaskGroups
-          groupedTasks={groupedTasks}
-          onEditTask={handleEditTask}
-          onDeleteTask={handleDeleteTask}
+        <TaskManager
+          tasks={tasks}
+          setTasks={setTasks}
+          familyMembers={family.members}
+          familyId={family.id}
+          showTaskForm={showTaskForm}
+          setShowTaskForm={setShowTaskForm}
         />
       ) : (
         <p className="text-center text-muted-foreground py-8">
@@ -314,25 +260,21 @@ export const Dashboard = () => {
         </p>
       )}
 
-      {showTaskForm && family && (
-        <TaskForm
-          onSubmit={handleAddTask}
-          onCancel={() => {
-            setShowTaskForm(false);
-            setEditingTask(null);
-          }}
-          familyMembers={family.members}
-          initialValues={editingTask}
-        />
-      )}
-
-      {showActivityRecorder && family && (
+      {showActivityRecorder && (
         <ActivityRecorder
           familyMembers={family.members}
           tasks={tasks}
           onClose={() => setShowActivityRecorder(false)}
           records={taskRecords}
           onRecordAdded={(newRecords) => setTaskRecords([...taskRecords, ...newRecords])}
+        />
+      )}
+
+      {showHistory && (
+        <HistoryView
+          records={taskRecords}
+          tasks={tasks}
+          onClose={() => setShowHistory(false)}
         />
       )}
     </div>
