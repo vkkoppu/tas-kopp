@@ -6,13 +6,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { Badge } from "../ui/badge";
 import { X } from "lucide-react";
+import { format } from "date-fns";
 
 interface TaskListProps {
   tasks: Task[];
   completedTasks: Set<string>;
-  completedBy: Record<string, string[]>;  // Changed to string[] for multiple people
+  completedBy: Record<string, string[]>;
   onTaskToggle: (taskId: string) => void;
-  onCompletedByChange: (taskId: string, values: string[]) => void;  // Changed to handle multiple values
+  onCompletedByChange: (taskId: string, values: string[]) => void;
   isTaskCompletedForDate: (taskId: string) => boolean;
 }
 
@@ -24,18 +25,35 @@ export const TaskList = ({
   onCompletedByChange,
   isTaskCompletedForDate,
 }: TaskListProps) => {
+  const isOutOfWindow = (task: Task, date: Date) => {
+    if (!task.startDate || !task.endDate) return false;
+    const taskStart = new Date(task.startDate);
+    const taskEnd = new Date(task.endDate);
+    return date < taskStart || date > taskEnd;
+  };
+
   return (
     <ScrollArea className="flex-1 border rounded-md p-4">
       {tasks.map((task) => {
         const isCompleted = isTaskCompletedForDate(task.id);
         const selectedMembers = completedBy[task.id] || [];
+        const isIndividualTask = task.assignedTo.length === 1;
+        const isOutOfRange = isOutOfWindow(task, new Date());
+
+        // Auto-select the assigned user for individual tasks when checked
+        const handleTaskToggle = () => {
+          onTaskToggle(task.id);
+          if (isIndividualTask && !completedTasks.has(task.id) && !isCompleted) {
+            onCompletedByChange(task.id, task.assignedTo);
+          }
+        };
 
         return (
           <div key={task.id} className="flex items-center space-x-2 py-2 border-b last:border-0">
             <Checkbox
               id={`task-${task.id}`}
               checked={isCompleted || completedTasks.has(task.id)}
-              onCheckedChange={() => onTaskToggle(task.id)}
+              onCheckedChange={handleTaskToggle}
               disabled={isCompleted}
             />
             <div className="flex-1">
@@ -43,7 +61,8 @@ export const TaskList = ({
                 htmlFor={`task-${task.id}`} 
                 className={cn(
                   "flex-1",
-                  isCompleted && "text-muted-foreground line-through"
+                  isCompleted && "text-muted-foreground line-through",
+                  isOutOfRange && "text-red-500"
                 )}
               >
                 {task.title}
@@ -51,7 +70,7 @@ export const TaskList = ({
                   (Assigned to: {task.assignedTo.join(", ")})
                 </span>
               </Label>
-              {completedTasks.has(task.id) && !isCompleted && (
+              {completedTasks.has(task.id) && !isCompleted && !isIndividualTask && (
                 <div className="mt-2 space-y-2">
                   <Select
                     value={selectedMembers[0] || ""}

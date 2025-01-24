@@ -48,21 +48,15 @@ export const TaskForm = ({
   const [endDate, setEndDate] = useState<Date | undefined>(initialValues?.endDate ? new Date(initialValues.endDate) : undefined);
   const [assignedTo, setAssignedTo] = useState<string[]>(initialValues?.assignedTo ?? []);
 
-  console.log('TaskForm: Mounted with initialValues:', initialValues);
+  const isFormValid = () => {
+    if (!title.trim()) return false;
+    if (assignedTo.length === 0) return false;
+    if (frequency === "custom" && (!customDays || customDays <= 0)) return false;
+    return true;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('TaskForm: Form submitted with values:', {
-      title,
-      priority,
-      frequency,
-      customDays,
-      dueDate,
-      startDate,
-      endDate,
-      assignedTo,
-    });
-
     if (!isFormValid()) {
       toast.error("Please fill in all required fields");
       return;
@@ -78,15 +72,6 @@ export const TaskForm = ({
       endDate,
       assignedTo,
     });
-  };
-
-  const isFormValid = () => {
-    if (!title.trim()) return false;
-    if (assignedTo.length === 0) return false;
-    if (frequency === "once" && !dueDate) return false;
-    if (frequency !== "once" && (!startDate || !endDate)) return false;
-    if (frequency === "custom" && (!customDays || customDays <= 0)) return false;
-    return true;
   };
 
   return (
