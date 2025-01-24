@@ -66,6 +66,15 @@ export const TaskForm = ({
     });
   };
 
+  const isFormValid = () => {
+    if (!title.trim()) return false;
+    if (assignedTo.length === 0) return false;
+    if (frequency === "once" && !dueDate) return false;
+    if (frequency !== "once" && (!startDate || !endDate)) return false;
+    if (frequency === "custom" && !customDays) return false;
+    return true;
+  };
+
   return (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="bg-card rounded-lg shadow-lg w-full max-w-md">
@@ -133,7 +142,7 @@ export const TaskForm = ({
                 <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
                   Cancel
                 </Button>
-                <Button type="submit" className="flex-1">
+                <Button type="submit" className="flex-1" disabled={!isFormValid()}>
                   {editingTask ? "Save Changes" : "Add Task"}
                 </Button>
               </div>
