@@ -65,6 +65,11 @@ export const TaskManager = ({
     try {
       console.log('Creating new task with data:', taskData);
 
+      // Format dates based on frequency
+      const dueDate = taskData.frequency === "once" ? taskData.dueDate : null;
+      const startDate = taskData.frequency !== "once" ? taskData.startDate : null;
+      const endDate = taskData.frequency !== "once" ? taskData.endDate : null;
+
       // First, insert the task
       const { data: newTaskData, error: taskError } = await supabase
         .from('tasks')
@@ -74,9 +79,9 @@ export const TaskManager = ({
           priority: taskData.priority,
           frequency: taskData.frequency,
           custom_days: taskData.customDays,
-          due_date: taskData.dueDate ? format(taskData.dueDate, "yyyy-MM-dd") : null,
-          start_date: taskData.startDate ? format(taskData.startDate, "yyyy-MM-dd") : null,
-          end_date: taskData.endDate ? format(taskData.endDate, "yyyy-MM-dd") : null,
+          due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : null,
+          start_date: startDate ? format(startDate, "yyyy-MM-dd") : null,
+          end_date: endDate ? format(endDate, "yyyy-MM-dd") : null,
         }])
         .select();
 
@@ -132,9 +137,9 @@ export const TaskManager = ({
         priority: taskData.priority,
         frequency: taskData.frequency,
         customDays: taskData.customDays,
-        dueDate: taskData.dueDate ? format(taskData.dueDate, "yyyy-MM-dd") : undefined,
-        startDate: taskData.startDate ? format(taskData.startDate, "yyyy-MM-dd") : undefined,
-        endDate: taskData.endDate ? format(taskData.endDate, "yyyy-MM-dd") : undefined,
+        dueDate: dueDate ? format(dueDate, "yyyy-MM-dd") : undefined,
+        startDate: startDate ? format(startDate, "yyyy-MM-dd") : undefined,
+        endDate: endDate ? format(endDate, "yyyy-MM-dd") : undefined,
         assignedTo: taskData.assignedTo,
       };
 
