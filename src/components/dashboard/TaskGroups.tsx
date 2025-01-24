@@ -9,7 +9,9 @@ interface TaskGroupsProps {
 }
 
 export const TaskGroups = ({ groupedTasks, onEditTask, onDeleteTask }: TaskGroupsProps) => {
+  console.log("TaskGroups - Received tasks:", groupedTasks);
   const groups = groupTasks(groupedTasks, "shared");
+  console.log("TaskGroups - Grouped tasks:", groups);
 
   return (
     <>

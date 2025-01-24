@@ -26,6 +26,8 @@ export const TaskManager = ({
 }: TaskManagerProps) => {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
+  console.log("TaskManager - Current tasks:", tasks);
+
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
     setShowTaskForm(true);
