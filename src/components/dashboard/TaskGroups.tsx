@@ -10,16 +10,27 @@ interface TaskGroupsProps {
 
 export const TaskGroups = ({ groupedTasks, onEditTask, onDeleteTask }: TaskGroupsProps) => {
   console.log("TaskGroups - Received tasks:", groupedTasks);
+  
+  // Ensure we have tasks to display
+  if (!groupedTasks || groupedTasks.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        No tasks available
+      </div>
+    );
+  }
+
   const groups = groupTasks(groupedTasks, "shared");
   console.log("TaskGroups - Grouped tasks:", groups);
 
   return (
-    <>
-      {Object.entries(groups).map(([group, tasks]) => {
-        if (tasks.length === 0) return null;
+    <div className="space-y-8">
+      {Object.entries(groups).map(([groupName, tasks]) => {
+        if (!tasks || tasks.length === 0) return null;
+        
         return (
-          <div key={group} className="space-y-4 bg-muted/30 p-6 rounded-lg mb-6">
-            <h2 className="text-2xl font-semibold">{group}</h2>
+          <div key={groupName} className="space-y-4 bg-muted/30 p-6 rounded-lg">
+            <h2 className="text-2xl font-semibold">{groupName}</h2>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {tasks.map((task) => (
                 <TaskCard
@@ -33,6 +44,6 @@ export const TaskGroups = ({ groupedTasks, onEditTask, onDeleteTask }: TaskGroup
           </div>
         );
       })}
-    </>
+    </div>
   );
 };
