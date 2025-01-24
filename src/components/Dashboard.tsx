@@ -12,6 +12,7 @@ import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Navigation } from "./Navigation";
 import { useFamily } from "@/hooks/use-family";
+import { toast } from "sonner";
 
 export const Dashboard = () => {
   const { family, isLoading } = useFamily();
@@ -54,6 +55,65 @@ export const Dashboard = () => {
     setShowTaskForm,
     setEditingTask,
   });
+
+  // Fetch tasks when component mounts and family changes
+  useEffect(() => {
+    const fetchTasks = async () => {
+      if (!family) return;
+      
+      try {
+        console.log('Fetching tasks for family:', family.id);
+        const { data, error } = await supabase
+          .from('tasks')
+          .select(`
+            id,
+            title,
+            priority,
+            frequency,
+            custom_days,
+            due_date,
+            start_date,
+            end_date,
+            task_assignments (
+              family_member_id,
+              family_members (
+                name
+              )
+            )
+          `)
+          .eq('family_id', family.id);
+
+        if (error) {
+          console.error('Error fetching tasks:', error);
+          toast.error("Failed to load tasks");
+          return;
+        }
+
+        console.log('Fetched tasks:', data);
+
+        const formattedTasks = data.map(task => ({
+          id: task.id,
+          title: task.title,
+          priority: task.priority,
+          frequency: task.frequency,
+          customDays: task.custom_days,
+          dueDate: task.due_date,
+          startDate: task.start_date,
+          endDate: task.end_date,
+          assignedTo: task.task_assignments
+            .map(assignment => assignment.family_members?.name)
+            .filter(Boolean)
+        }));
+
+        setTasks(formattedTasks);
+      } catch (error) {
+        console.error('Error in fetchTasks:', error);
+        toast.error("Failed to load tasks");
+      }
+    };
+
+    fetchTasks();
+  }, [family, setTasks]);
 
   // Always declare useEffect hooks at the top level, regardless of conditions
   useEffect(() => {
