@@ -86,6 +86,39 @@ export const Dashboard = () => {
     }
   };
 
+  const cleanupOrphanedTasks = async (familyId: string) => {
+    try {
+      // Get tasks without assignments
+      const { data: orphanedTasks, error: fetchError } = await supabase
+        .from('tasks')
+        .select('id')
+        .eq('family_id', familyId)
+        .not('task_assignments', 'cs', '{}');
+
+      if (fetchError) {
+        console.error('Error fetching orphaned tasks:', fetchError);
+        return;
+      }
+
+      if (orphanedTasks && orphanedTasks.length > 0) {
+        const { error: deleteError } = await supabase
+          .from('tasks')
+          .delete()
+          .in('id', orphanedTasks.map(t => t.id));
+
+        if (deleteError) {
+          console.error('Error deleting orphaned tasks:', deleteError);
+          return;
+        }
+
+        console.log(`Cleaned up ${orphanedTasks.length} orphaned tasks`);
+        toast.success(`Cleaned up ${orphanedTasks.length} tasks without assignments`);
+      }
+    } catch (error) {
+      console.error('Error in cleanupOrphanedTasks:', error);
+    }
+  };
+
   useEffect(() => {
     const fetchTasks = async () => {
       if (!family) return;
@@ -135,6 +168,9 @@ export const Dashboard = () => {
         }));
 
         setTasks(formattedTasks);
+        
+        // Run cleanup after fetching tasks
+        await cleanupOrphanedTasks(family.id);
       } catch (error) {
         console.error('Error in fetchTasks:', error);
         toast.error("Failed to load tasks");
