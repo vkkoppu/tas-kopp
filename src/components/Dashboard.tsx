@@ -192,16 +192,17 @@ export const Dashboard = () => {
   }, [family, setFamilyData]);
 
   const handleAddTask = () => {
-    console.log('handleAddTask called in Dashboard - before state update');
+    console.log('handleAddTask called in Dashboard');
     console.log('Current showTaskForm state:', showTaskForm);
     setShowTaskForm(true);
-    console.log('handleAddTask called in Dashboard - after state update');
-    console.log('New showTaskForm value set to true');
+    console.log('New showTaskForm state should be true');
   };
 
   useEffect(() => {
-    console.log('showTaskForm changed:', showTaskForm);
+    console.log('Dashboard - showTaskForm state changed:', showTaskForm);
   }, [showTaskForm]);
+
+  console.log('Dashboard render - showTaskForm:', showTaskForm);
 
   if (isLoading) {
     return (
@@ -222,8 +223,6 @@ export const Dashboard = () => {
       </>
     );
   }
-
-  console.log('Dashboard render - showTaskForm:', showTaskForm);
 
   return (
     <div className="container py-8 animate-fade-in">
