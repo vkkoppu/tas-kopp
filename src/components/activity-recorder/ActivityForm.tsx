@@ -67,13 +67,20 @@ export const ActivityForm = ({ tasks, familyMembers, onSave, records }: Activity
         if (!familyMember) continue;
 
         const formattedDate = format(filterState.selectedDate, "yyyy-MM-dd'T'HH:mm:ssxxx");
-        
-        console.log('Inserting task record:', {
-          task_id: taskId,
-          completed_by: familyMember.id,
-          completed_at: formattedDate
-        });
 
+        // First verify that this task belongs to the user's family
+        const { data: taskData, error: taskError } = await supabase
+          .from('tasks')
+          .select('family_id')
+          .eq('id', taskId)
+          .single();
+
+        if (taskError) {
+          console.error('Error verifying task:', taskError);
+          throw taskError;
+        }
+
+        // Then insert the task record
         const { error } = await supabase
           .from('task_records')
           .insert({
