@@ -92,18 +92,16 @@ export const ActivityRecorder = ({
         
         console.log('Inserting task record:', recordData);
 
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('task_records')
-          .insert(recordData)
-          .select()
-          .single();
+          .insert(recordData);
 
         if (error) {
           console.error('Error details:', error);
           throw error;
         }
 
-        console.log('Successfully inserted record:', data);
+        console.log('Successfully inserted record for task:', taskId);
 
         newRecords.push({
           taskId,
