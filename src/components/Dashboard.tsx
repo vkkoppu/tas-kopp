@@ -4,7 +4,7 @@ import { TaskTrends } from "./TaskTrends";
 import { DashboardHeader } from "./dashboard/DashboardHeader";
 import { TaskFilters } from "./dashboard/TaskFilters";
 import { useDashboardState } from "@/hooks/useDashboardState";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Navigation } from "./Navigation";
 import { useFamily } from "@/hooks/use-family";
@@ -191,18 +191,9 @@ export const Dashboard = () => {
     }
   }, [family, setFamilyData]);
 
-  const handleAddTask = () => {
-    console.log('handleAddTask called in Dashboard');
-    console.log('Current showTaskForm state:', showTaskForm);
+  const handleAddTask = useCallback(() => {
     setShowTaskForm(true);
-    console.log('New showTaskForm state should be true');
-  };
-
-  useEffect(() => {
-    console.log('Dashboard - showTaskForm state changed:', showTaskForm);
-  }, [showTaskForm]);
-
-  console.log('Dashboard render - showTaskForm:', showTaskForm);
+  }, [setShowTaskForm]);
 
   if (isLoading) {
     return (
