@@ -50,6 +50,16 @@ export const TaskForm = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Form submitted with values:", {
+      title,
+      priority,
+      frequency,
+      customDays,
+      dueDate,
+      startDate,
+      endDate,
+      assignedTo
+    });
     
     if (!isFormValid()) {
       toast.error("Please fill in all required fields");
@@ -61,9 +71,9 @@ export const TaskForm = ({
       priority,
       frequency,
       customDays,
-      dueDate: frequency === "once" ? dueDate : undefined,
-      startDate: frequency !== "once" ? startDate : undefined,
-      endDate: frequency !== "once" ? endDate : undefined,
+      dueDate,
+      startDate,
+      endDate,
       assignedTo,
     });
   };
@@ -141,7 +151,12 @@ export const TaskForm = ({
               />
 
               <div className="flex gap-4 pt-4">
-                <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={onCancel} 
+                  className="flex-1"
+                >
                   Cancel
                 </Button>
                 <Button 
