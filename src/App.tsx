@@ -29,13 +29,14 @@ const App = () => {
         } else if (session?.user) {
           console.log('Session found:', session);
           setUser(session.user);
+          toast.success("Welcome back!");
         } else {
           console.log('No active session');
           setUser(null);
         }
       } catch (error) {
         console.error('Auth check error:', error);
-        toast.error("Authentication error. Please try logging in again.");
+        toast.error("Failed to check authentication status");
         setUser(null);
       } finally {
         setLoading(false);
@@ -48,29 +49,24 @@ const App = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, session);
       
-      switch (event) {
-        case 'SIGNED_OUT':
-          console.log('User signed out');
-          setUser(null);
-          toast.info("You have been signed out.");
-          break;
-        case 'SIGNED_IN':
-          console.log('User signed in:', session?.user);
-          setUser(session?.user ?? null);
-          toast.success("Successfully signed in!");
-          break;
-        case 'TOKEN_REFRESHED':
-          console.log('Token refreshed:', session?.user);
-          setUser(session?.user ?? null);
-          toast.success("Session refreshed successfully!");
-          break;
-        case 'USER_UPDATED':
-          console.log('User updated:', session?.user);
-          setUser(session?.user ?? null);
-          toast.success("Profile updated successfully!");
-          break;
-        default:
-          console.log('Unhandled auth event:', event);
+      if (event === 'SIGNED_IN') {
+        console.log('User signed in:', session?.user);
+        setUser(session?.user ?? null);
+        toast.success("Successfully signed in!");
+      } else if (event === 'SIGNED_OUT') {
+        console.log('User signed out');
+        setUser(null);
+        toast.info("You have been signed out.");
+      } else if (event === 'TOKEN_REFRESHED') {
+        console.log('Token refreshed:', session?.user);
+        setUser(session?.user ?? null);
+        toast.success("Session refreshed successfully!");
+      } else if (event === 'USER_UPDATED') {
+        console.log('User updated:', session?.user);
+        setUser(session?.user ?? null);
+        toast.success("Profile updated successfully!");
+      } else {
+        console.log('Unhandled auth event:', event);
       }
     });
 
