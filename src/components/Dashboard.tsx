@@ -59,7 +59,7 @@ export const Dashboard = () => {
   // Fetch task records when component mounts
   useEffect(() => {
     const fetchTaskRecords = async () => {
-      if (!familyData) return;
+      if (!family) return;
       
       const { data, error } = await supabase
         .from('task_records')
@@ -89,7 +89,7 @@ export const Dashboard = () => {
     };
 
     fetchTaskRecords();
-  }, [familyData]);
+  }, [family]);
 
   // Show loading state while checking family data
   if (isLoading) {
@@ -100,18 +100,31 @@ export const Dashboard = () => {
     );
   }
 
-  // Show family form only if no family exists or if explicitly requested
-  if (!family || showFamilyForm || showEditFamily) {
+  // Show family form only if no family exists
+  if (!family) {
     return (
       <>
         <Navigation />
         <FamilyDetailsForm 
           onSubmit={handleFamilySubmit}
-          initialValues={showEditFamily ? familyData : undefined}
+          initialValues={undefined}
         />
       </>
     );
   }
+
+  // Update familyData when family is loaded
+  useEffect(() => {
+    if (family) {
+      setFamilyData({
+        familyName: family.name,
+        members: family.members.map(member => ({
+          name: member.name,
+          role: member.role,
+        }))
+      });
+    }
+  }, [family, setFamilyData]);
 
   const groupedTasks = groupTasks(tasks, groupBy);
 
@@ -119,7 +132,7 @@ export const Dashboard = () => {
     <div className="container py-8 animate-fade-in">
       <Navigation />
       <DashboardHeader
-        familyName={familyData?.familyName || ""}
+        familyName={family.name}
         onEditFamily={() => setShowEditFamily(true)}
         onAddTask={() => setShowTaskForm(true)}
         onRecordActivities={() => setShowActivityRecorder(true)}
@@ -159,21 +172,21 @@ export const Dashboard = () => {
         </p>
       )}
 
-      {showTaskForm && familyData && (
+      {showTaskForm && family && (
         <TaskForm
           onSubmit={handleAddTask}
           onCancel={() => {
             setShowTaskForm(false);
             setEditingTask(null);
           }}
-          familyMembers={familyData.members as FamilyMember[]}
+          familyMembers={family.members as FamilyMember[]}
           initialValues={editingTask}
         />
       )}
 
-      {showActivityRecorder && familyData && (
+      {showActivityRecorder && family && (
         <ActivityRecorder
-          familyMembers={familyData.members as FamilyMember[]}
+          familyMembers={family.members as FamilyMember[]}
           tasks={tasks}
           onClose={() => setShowActivityRecorder(false)}
           records={taskRecords}

@@ -1,40 +1,18 @@
 import { FamilyDetailsForm } from "@/components/FamilyDetailsForm";
 import { useFamily } from "@/hooks/use-family";
-import { useDashboardHandlers } from "@/hooks/useDashboardHandlers";
-import { useDashboardState } from "@/hooks/useDashboardState";
 import { Navigation } from "@/components/Navigation";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 const Profile = () => {
-  const {
-    tasks,
-    setTasks,
-    setShowFamilyForm,
-    setShowEditFamily,
-    setShowTaskForm,
-    setEditingTask,
-  } = useDashboardState();
+  const { family, isLoading, updateFamily } = useFamily();
+  const navigate = useNavigate();
 
-  const { family, isLoading } = useFamily();
-
-  const familyData = family ? {
-    familyName: family.name,
-    members: family.members.map(member => ({
-      id: member.id,
-      name: member.name,
-      role: member.role,
-    }))
-  } : null;
-
-  const { handleFamilySubmit } = useDashboardHandlers({
-    tasks,
-    setTasks,
-    familyData,
-    setFamilyData: () => {}, // We don't need this since we're using React Query
-    setShowFamilyForm,
-    setShowEditFamily,
-    setShowTaskForm,
-    setEditingTask,
-  });
+  useEffect(() => {
+    if (!isLoading && !family) {
+      navigate("/");
+    }
+  }, [family, isLoading, navigate]);
 
   if (isLoading) {
     return (
@@ -43,6 +21,30 @@ const Profile = () => {
       </div>
     );
   }
+
+  if (!family) {
+    return null;
+  }
+
+  const familyData = {
+    familyName: family.name,
+    members: family.members.map(member => ({
+      name: member.name,
+      role: member.role,
+    }))
+  };
+
+  const handleFamilySubmit = async (data: { familyName: string; members: { name: string; role: string; }[] }) => {
+    try {
+      await updateFamily.mutateAsync({
+        name: data.familyName,
+        members: data.members
+      });
+      navigate("/");
+    } catch (error) {
+      console.error("Error updating family:", error);
+    }
+  };
 
   return (
     <div className="container py-8">
