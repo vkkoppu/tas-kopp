@@ -5,11 +5,11 @@ import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FrequencySelector } from "./task-form/FrequencySelector";
 import { DateSelector } from "./task-form/DateSelector";
-import { useNavigate } from "react-router-dom";
 import { AssigneeSelector } from "./task-form/AssigneeSelector";
 import { PrioritySelector } from "./task-form/PrioritySelector";
 import { toast } from "sonner";
 import { Task } from "@/types/task";
+import { FamilyMember } from "@/types/family";
 
 interface TaskFormProps {
   onSubmit: (task: {
@@ -23,12 +23,22 @@ interface TaskFormProps {
     assignedTo: string[];
   }) => void;
   onCancel: () => void;
-  familyMembers: { name: string; role: string }[];
+  familyMembers: FamilyMember[];
   initialValues?: Task;
+  tasks: Task[];
+  setTasks: (tasks: Task[]) => void;
+  editingTask: Task | null;
 }
 
-export const TaskForm = ({ onSubmit, onCancel, familyMembers, initialValues }: TaskFormProps) => {
-  const navigate = useNavigate();
+export const TaskForm = ({ 
+  onSubmit, 
+  onCancel, 
+  familyMembers, 
+  initialValues,
+  tasks,
+  setTasks,
+  editingTask 
+}: TaskFormProps) => {
   const [title, setTitle] = useState(initialValues?.title ?? "");
   const [priority, setPriority] = useState<"low" | "medium" | "high">(initialValues?.priority ?? "medium");
   const [frequency, setFrequency] = useState<"once" | "daily" | "weekly" | "custom">(initialValues?.frequency ?? "once");
@@ -64,7 +74,7 @@ export const TaskForm = ({ onSubmit, onCancel, familyMembers, initialValues }: T
           <div className="p-6 space-y-6">
             <div>
               <h2 className="text-2xl font-bold mb-2">
-                {initialValues ? "Edit Task" : "Add New Task"}
+                {editingTask ? "Edit Task" : "Add New Task"}
               </h2>
               <p className="text-muted-foreground">Fill in the task details below</p>
             </div>
@@ -125,7 +135,7 @@ export const TaskForm = ({ onSubmit, onCancel, familyMembers, initialValues }: T
                   Cancel
                 </Button>
                 <Button type="submit" className="flex-1">
-                  {initialValues ? "Save Changes" : "Add Task"}
+                  {editingTask ? "Save Changes" : "Add Task"}
                 </Button>
               </div>
             </form>
