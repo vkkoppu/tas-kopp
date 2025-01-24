@@ -69,11 +69,6 @@ const App = () => {
           setUser(session?.user ?? null);
           toast.success("Profile updated successfully!");
           break;
-        case 'USER_DELETED':
-          console.log('User deleted');
-          setUser(null);
-          toast.info("Account deleted.");
-          break;
         default:
           console.log('Unhandled auth event:', event);
       }
