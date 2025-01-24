@@ -54,41 +54,60 @@ export const ActivityForm = ({ tasks, familyMembers, onSave, records }: Activity
         return;
       }
 
+      console.log('Starting to save task records...');
+      console.log('Tasks to complete:', Array.from(completedTasks));
+      console.log('Family members:', familyMembers);
+
       const newRecords = [];
+      const errors = [];
       
       for (const taskId of completedTasks) {
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) {
+          console.error('Task not found:', taskId);
+          errors.push(`Task ${taskId} not found`);
+          continue;
+        }
+
         const memberName = completedBy[taskId];
         if (!memberName) {
           console.error('No member assigned for task:', taskId);
+          errors.push(`No member assigned for task ${task.title}`);
           continue;
         }
 
         const familyMember = familyMembers.find(m => m.name === memberName);
         if (!familyMember) {
           console.error('Family member not found:', memberName);
+          errors.push(`Family member ${memberName} not found`);
           continue;
         }
 
         const formattedDate = format(filterState.selectedDate, "yyyy-MM-dd'T'HH:mm:ssxxx");
 
-        console.log('Inserting task record:', {
+        console.log('Attempting to insert task record:', {
           task_id: taskId,
           completed_by: familyMember.id,
           completed_at: formattedDate
         });
 
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('task_records')
           .insert({
             task_id: taskId,
             completed_by: familyMember.id,
             completed_at: formattedDate
-          });
+          })
+          .select()
+          .single();
 
         if (error) {
           console.error('Error details:', error);
-          throw error;
+          errors.push(`Failed to save record for task ${task.title}: ${error.message}`);
+          continue;
         }
+
+        console.log('Successfully inserted task record:', data);
 
         newRecords.push({
           taskId,
@@ -96,6 +115,15 @@ export const ActivityForm = ({ tasks, familyMembers, onSave, records }: Activity
           date: format(filterState.selectedDate, 'yyyy-MM-dd'),
           completedBy: memberName,
         });
+      }
+
+      if (errors.length > 0) {
+        toast({
+          title: "Some records failed to save",
+          description: errors.join('\n'),
+          variant: "destructive",
+        });
+        return;
       }
 
       await onSave(newRecords);
