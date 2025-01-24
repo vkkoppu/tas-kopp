@@ -189,7 +189,7 @@ export const Dashboard = () => {
   }, [family, setFamilyData]);
 
   const handleAddTask = useCallback(() => {
-    console.log('Opening task form...');
+    console.log('Dashboard: Opening task form...');
     setShowTaskForm(true);
   }, [setShowTaskForm]);
 
@@ -212,6 +212,8 @@ export const Dashboard = () => {
       </>
     );
   }
+
+  console.log('Dashboard: Current showTaskForm state:', showTaskForm);
 
   return (
     <div className="container py-8 animate-fade-in">

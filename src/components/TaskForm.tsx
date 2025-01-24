@@ -48,9 +48,11 @@ export const TaskForm = ({
   const [endDate, setEndDate] = useState<Date | undefined>(initialValues?.endDate ? new Date(initialValues.endDate) : undefined);
   const [assignedTo, setAssignedTo] = useState<string[]>(initialValues?.assignedTo ?? []);
 
+  console.log('TaskForm: Mounted with initialValues:', initialValues);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted with values:', {
+    console.log('TaskForm: Form submitted with values:', {
       title,
       priority,
       frequency,
@@ -88,8 +90,8 @@ export const TaskForm = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-card rounded-lg shadow-lg w-full max-w-md">
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-card rounded-lg shadow-lg w-full max-w-md relative">
         <ScrollArea className="h-[80vh]">
           <div className="p-6 space-y-6">
             <div>

@@ -26,6 +26,8 @@ export const TaskManager = ({
 }: TaskManagerProps) => {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
+  console.log('TaskManager: showTaskForm state:', showTaskForm);
+
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
     setShowTaskForm(true);
@@ -62,6 +64,7 @@ export const TaskManager = ({
     customDays?: number;
     assignedTo: string[];
   }) => {
+    console.log('TaskManager: Handling task submission:', taskData);
     try {
       if (!familyId) {
         toast.error("Missing family ID");
@@ -151,10 +154,14 @@ export const TaskManager = ({
       {showTaskForm && (
         <TaskForm
           onCancel={() => {
+            console.log('TaskManager: Canceling task form...');
             setShowTaskForm(false);
             setEditingTask(null);
           }}
-          onSubmit={handleSubmit}
+          onSubmit={(taskData) => {
+            console.log('TaskManager: Form submitted, calling handleSubmit...');
+            handleSubmit(taskData);
+          }}
           editingTask={editingTask}
           tasks={tasks}
           setTasks={setTasks}
