@@ -90,7 +90,6 @@ export const Dashboard = () => {
       if (!family) return;
       
       try {
-        console.log('Fetching tasks for family:', family.id);
         const { data, error } = await supabase
           .from('tasks')
           .select(`
@@ -116,8 +115,6 @@ export const Dashboard = () => {
           toast.error("Failed to load tasks");
           return;
         }
-
-        console.log('Fetched tasks:', data);
 
         const formattedTasks = data.map(task => ({
           id: task.id,
@@ -192,6 +189,7 @@ export const Dashboard = () => {
   }, [family, setFamilyData]);
 
   const handleAddTask = useCallback(() => {
+    console.log('Opening task form...');
     setShowTaskForm(true);
   }, [setShowTaskForm]);
 
@@ -249,20 +247,14 @@ export const Dashboard = () => {
         </div>
       )}
 
-      {tasks.length > 0 ? (
-        <TaskManager
-          tasks={tasks}
-          setTasks={setTasks}
-          familyMembers={family.members}
-          familyId={family.id}
-          showTaskForm={showTaskForm}
-          setShowTaskForm={setShowTaskForm}
-        />
-      ) : (
-        <p className="text-center text-muted-foreground py-8">
-          No tasks yet. Click the "Add Task" button to get started!
-        </p>
-      )}
+      <TaskManager
+        tasks={tasks}
+        setTasks={setTasks}
+        familyMembers={family.members}
+        familyId={family.id}
+        showTaskForm={showTaskForm}
+        setShowTaskForm={setShowTaskForm}
+      />
 
       {showActivityRecorder && (
         <ActivityRecorder

@@ -147,7 +147,7 @@ export const TaskManager = ({
   };
 
   return (
-    <>
+    <div className="relative">
       {showTaskForm && (
         <TaskForm
           onCancel={() => {
@@ -168,6 +168,6 @@ export const TaskManager = ({
         onEditTask={handleEditTask}
         onDeleteTask={handleDeleteTask}
       />
-    </>
+    </div>
   );
 };
