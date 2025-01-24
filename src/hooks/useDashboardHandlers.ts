@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { Task } from "@/types/task";
-import { FamilyData } from "./useDashboardState";
+import { FamilyData, FamilyMember } from "@/types/family";
 
 interface DashboardHandlersProps {
   tasks: Task[];
@@ -26,7 +26,7 @@ export const useDashboardHandlers = ({
   const handleFamilySubmit = (data: FamilyData) => {
     if (familyData) {
       const oldToNewNames = new Map(
-        familyData.members.map((oldMember) => {
+        familyData.members.map((oldMember: FamilyMember) => {
           const newMember = data.members.find((m) => m.role === oldMember.role);
           return [oldMember.name, newMember?.name || oldMember.name];
         })
