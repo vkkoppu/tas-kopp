@@ -22,6 +22,11 @@ export const DashboardHeader = ({
   showTrends,
   hasExistingTasks,
 }: DashboardHeaderProps) => {
+  const handleAddTaskClick = () => {
+    console.log('Add Task button clicked');
+    onAddTask();
+  };
+
   return (
     <div className="mb-8 space-y-4">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -37,7 +42,7 @@ export const DashboardHeader = ({
           </Button>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button onClick={onAddTask} className="flex items-center gap-2">
+          <Button onClick={handleAddTaskClick} className="flex items-center gap-2">
             <ListPlus className="h-4 w-4" />
             Add Task
           </Button>

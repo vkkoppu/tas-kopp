@@ -191,6 +191,12 @@ export const Dashboard = () => {
     }
   }, [family, setFamilyData]);
 
+  const handleAddTask = () => {
+    console.log('handleAddTask called, current showTaskForm:', showTaskForm);
+    setShowTaskForm(true);
+    console.log('showTaskForm set to:', true);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -211,13 +217,15 @@ export const Dashboard = () => {
     );
   }
 
+  console.log('Dashboard render - showTaskForm:', showTaskForm);
+
   return (
     <div className="container py-8 animate-fade-in">
       <Navigation />
       <DashboardHeader
         familyName={family.name}
         onEditFamily={() => setShowEditFamily(true)}
-        onAddTask={() => setShowTaskForm(true)}
+        onAddTask={handleAddTask}
         onRecordActivities={() => setShowActivityRecorder(true)}
         onViewHistory={() => setShowHistory(true)}
         onToggleTrends={() => setShowTrends(!showTrends)}
