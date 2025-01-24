@@ -15,10 +15,10 @@ const AuthPage = () => {
         navigate("/");
       }
       // Handle authentication errors
-      if (event === "USER_DELETED" || event === "SIGNED_OUT") {
+      if (event === "SIGNED_OUT") {
         toast({
-          title: "Authentication Error",
-          description: "Please check your credentials and try again.",
+          title: "Signed Out",
+          description: "You have been signed out of your account.",
           variant: "destructive",
         });
       }
@@ -26,6 +26,14 @@ const AuthPage = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate, toast]);
+
+  const handleError = (error: Error) => {
+    toast({
+      title: "Authentication Error",
+      description: error.message,
+      variant: "destructive",
+    });
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -49,13 +57,6 @@ const AuthPage = () => {
           }}
           providers={[]}
           redirectTo={window.location.origin}
-          onError={(error) => {
-            toast({
-              title: "Authentication Error",
-              description: error.message,
-              variant: "destructive",
-            });
-          }}
         />
       </div>
     </div>
