@@ -27,12 +27,7 @@ export const DashboardHeader = ({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <h1 className="text-3xl font-bold">{familyName}</h1>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={onEditFamily}
-            className="hover:bg-accent"
-          >
+          <Button variant="ghost" size="icon" onClick={onEditFamily}>
             <PencilLine className="h-4 w-4" />
           </Button>
         </div>

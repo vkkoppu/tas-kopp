@@ -50,35 +50,24 @@ export const TaskForm = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!isFormValid()) {
-      toast.error("Please fill in all required fields");
+    if (assignedTo.length === 0) {
+      toast.error("Please assign the task to at least one family member");
       return;
     }
-
     onSubmit({
       title,
       priority,
       frequency,
       customDays,
-      dueDate,
-      startDate,
-      endDate,
+      dueDate: frequency === "once" ? dueDate : undefined,
+      startDate: frequency !== "once" ? startDate : undefined,
+      endDate: frequency !== "once" ? endDate : undefined,
       assignedTo,
     });
   };
 
-  const isFormValid = () => {
-    if (!title.trim()) return false;
-    if (assignedTo.length === 0) return false;
-    if (frequency === "once" && !dueDate) return false;
-    if (frequency !== "once" && (!startDate || !endDate)) return false;
-    if (frequency === "custom" && (!customDays || customDays <= 0)) return false;
-    return true;
-  };
-
   return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="bg-card rounded-lg shadow-lg w-full max-w-md">
         <ScrollArea className="h-[80vh]">
           <div className="p-6 space-y-6">
@@ -141,18 +130,10 @@ export const TaskForm = ({
               />
 
               <div className="flex gap-4 pt-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={onCancel} 
-                  className="flex-1"
-                >
+                <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
                   Cancel
                 </Button>
-                <Button 
-                  type="submit" 
-                  className="flex-1"
-                >
+                <Button type="submit" className="flex-1">
                   {editingTask ? "Save Changes" : "Add Task"}
                 </Button>
               </div>
