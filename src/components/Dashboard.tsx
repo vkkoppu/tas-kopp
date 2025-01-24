@@ -188,8 +188,10 @@ export const Dashboard = () => {
     }
   }, [family, setFamilyData]);
 
-  const handleAddTask = useCallback(() => {
-    console.log('Dashboard: Opening task form...');
+  const handleAddTask = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Dashboard: handleAddTask called');
     setShowTaskForm(true);
   }, [setShowTaskForm]);
 

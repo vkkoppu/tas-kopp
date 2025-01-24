@@ -4,7 +4,7 @@ import { History, ListPlus, PencilLine, BarChart2, ClipboardList } from "lucide-
 interface DashboardHeaderProps {
   familyName: string;
   onEditFamily: () => void;
-  onAddTask: () => void;
+  onAddTask: (e: React.MouseEvent) => void;
   onRecordActivities: () => void;
   onViewHistory: () => void;
   onToggleTrends: () => void;
