@@ -42,14 +42,16 @@ const App = () => {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event);
-      if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+      console.log('Auth state changed:', event, session);
+      if (event === 'SIGNED_OUT') {
         setUser(null);
         toast.info("You have been signed out.");
       } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         setUser(session?.user ?? null);
+        toast.success("Successfully signed in!");
       } else if (event === 'USER_UPDATED') {
         setUser(session?.user ?? null);
+        toast.success("Profile updated successfully!");
       }
     });
 
