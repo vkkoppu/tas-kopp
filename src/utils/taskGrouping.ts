@@ -33,19 +33,15 @@ export const groupTasks = (tasks: Task[], groupBy: "individual" | "shared") => {
     };
   }
 
-  if (groupBy === "shared") {
-    const sharedTasks = tasks.filter(task => 
-      Array.isArray(task.assignedTo) && task.assignedTo.length > 1
-    );
-    const individualTasks = tasks.filter(task => 
-      Array.isArray(task.assignedTo) && task.assignedTo.length === 1
-    );
-    
-    return {
-      "Shared Tasks": sharedTasks,
-      "Individual Tasks": individualTasks
-    };
-  }
+  const sharedTasks = tasks.filter(task => 
+    Array.isArray(task.assignedTo) && task.assignedTo.length > 1
+  );
+  const individualTasks = tasks.filter(task => 
+    Array.isArray(task.assignedTo) && task.assignedTo.length === 1
+  );
   
-  return groupTasksByAssignee(tasks);
+  return {
+    "Shared Tasks": sharedTasks,
+    "Individual Tasks": individualTasks
+  };
 };
