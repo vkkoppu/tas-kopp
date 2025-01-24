@@ -17,6 +17,14 @@ const priorityColors = {
   high: "bg-pastel-orange"
 };
 
+const formatFrequency = (frequency: string, customDays?: number) => {
+  if (!frequency) return "";
+  if (frequency === "custom" && customDays) {
+    return `Every ${customDays} days`;
+  }
+  return frequency.charAt(0).toUpperCase() + frequency.slice(1);
+};
+
 export const TaskCard = ({
   task,
   onEdit,
@@ -39,11 +47,7 @@ export const TaskCard = ({
             )}
             <div className="flex items-center gap-2">
               <Users2Icon className="h-4 w-4" />
-              <span>
-                {task.frequency === "custom"
-                  ? `Every ${task.customDays} days`
-                  : `${task.frequency.charAt(0).toUpperCase() + task.frequency.slice(1)}`}
-              </span>
+              <span>{formatFrequency(task.frequency, task.customDays)}</span>
             </div>
             {task.startDate && task.endDate && (
               <div className="flex items-center gap-2">
