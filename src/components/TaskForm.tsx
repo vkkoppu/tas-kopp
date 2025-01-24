@@ -64,7 +64,6 @@ export const TaskForm = ({
       endDate: frequency !== "once" ? endDate : undefined,
       assignedTo,
     });
-    navigate('/');
   };
 
   return (
