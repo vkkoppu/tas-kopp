@@ -64,6 +64,7 @@ export const TaskManager = ({
   }) => {
     try {
       console.log('Creating new task with data:', taskData);
+      console.log('Family ID:', familyId);
 
       // Format dates based on frequency
       const dueDate = taskData.frequency === "once" ? taskData.dueDate : null;
@@ -71,9 +72,9 @@ export const TaskManager = ({
       const endDate = taskData.frequency !== "once" ? taskData.endDate : null;
 
       // First, insert the task
-      const { data: newTaskData, error: taskError } = await supabase
+      const { data: newTask, error: taskError } = await supabase
         .from('tasks')
-        .insert([{
+        .insert({
           family_id: familyId,
           title: taskData.title,
           priority: taskData.priority,
@@ -82,53 +83,46 @@ export const TaskManager = ({
           due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : null,
           start_date: startDate ? format(startDate, "yyyy-MM-dd") : null,
           end_date: endDate ? format(endDate, "yyyy-MM-dd") : null,
-        }])
-        .select();
+        })
+        .select()
+        .single();
 
-      if (taskError || !newTaskData || newTaskData.length === 0) {
+      if (taskError || !newTask) {
         console.error('Error creating task:', taskError);
         toast.error("Failed to create task");
         return;
       }
 
-      const newTask = newTaskData[0];
       console.log('Task created successfully:', newTask);
 
-      // Get family members to map names to IDs
-      const { data: familyMembersData, error: membersError } = await supabase
-        .from('family_members')
-        .select('id, name')
-        .eq('family_id', familyId);
-
-      if (membersError || !familyMembersData) {
-        console.error('Error fetching family members:', membersError);
-        toast.error("Failed to fetch family members");
-        return;
-      }
-
       // Create assignments
-      const assignments = taskData.assignedTo.map(memberName => {
-        const member = familyMembersData.find(m => m.name === memberName);
-        if (!member) {
-          console.error('Family member not found:', memberName);
-          return null;
-        }
-        return {
-          task_id: newTask.id,
-          family_member_id: member.id,
-        };
-      }).filter(Boolean);
+      const assignments = await Promise.all(
+        taskData.assignedTo.map(async (memberName) => {
+          const member = familyMembers.find(m => m.name === memberName);
+          if (!member) {
+            console.error('Family member not found:', memberName);
+            return null;
+          }
+          
+          const { error: assignmentError } = await supabase
+            .from('task_assignments')
+            .insert({
+              task_id: newTask.id,
+              family_member_id: member.id,
+            });
 
-      if (assignments.length > 0) {
-        const { error: assignmentError } = await supabase
-          .from('task_assignments')
-          .insert(assignments);
+          if (assignmentError) {
+            console.error('Error creating task assignment:', assignmentError);
+            return null;
+          }
 
-        if (assignmentError) {
-          console.error('Error creating task assignments:', assignmentError);
-          toast.error("Failed to assign task to family members");
-          return;
-        }
+          return member;
+        })
+      );
+
+      if (assignments.some(a => a === null)) {
+        toast.error("Some assignments failed to create");
+        // Continue anyway as the task was created
       }
 
       const formattedTask: Task = {
