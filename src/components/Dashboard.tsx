@@ -7,6 +7,8 @@ import { Task } from "@/types/task";
 import { Button } from "@/components/ui/button";
 import { Navigation } from "@/components/Navigation";
 import { FamilyDetailsForm } from "@/components/FamilyDetailsForm";
+import { ActivityRecord } from "./activity-recorder/types";
+import { useToast } from "./ui/use-toast";
 
 interface DashboardProps {
   familyData: FamilyData | null;
@@ -19,6 +21,8 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
   const [showActivityRecorder, setShowActivityRecorder] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [taskRecords, setTaskRecords] = useState<ActivityRecord[]>([]);
+  const { toast } = useToast();
 
   console.log("Dashboard - Received familyData:", familyData);
   console.log("Dashboard - Received tasks:", tasks);
@@ -52,6 +56,24 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
     // The FamilyDetailsForm component handles the actual submission
     // We just need to refresh the page to show the updated data
     window.location.reload();
+  };
+
+  const handleActivityRecorded = async (newRecords: ActivityRecord[]) => {
+    try {
+      setTaskRecords(prev => [...prev, ...newRecords]);
+      setShowActivityRecorder(false);
+      toast({
+        title: "Success",
+        description: "Activities recorded successfully",
+      });
+    } catch (error) {
+      console.error('Error handling activity records:', error);
+      toast({
+        title: "Error",
+        description: "Failed to record activities",
+        variant: "destructive",
+      });
+    }
   };
 
   if (!familyData) {
@@ -108,14 +130,14 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
             familyMembers={familyData.members}
             tasks={tasks}
             onClose={() => setShowActivityRecorder(false)}
-            records={[]}
-            onRecordAdded={() => {}}
+            records={taskRecords}
+            onRecordAdded={handleActivityRecorded}
           />
         )}
 
         {showHistory && (
           <TaskHistory
-            records={[]}
+            records={taskRecords}
             tasks={tasks}
             onClose={() => setShowHistory(false)}
           />
