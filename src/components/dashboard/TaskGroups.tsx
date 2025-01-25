@@ -27,16 +27,22 @@ export const TaskGroups = ({ groupedTasks, onEditTask, onDeleteTask }: TaskGroup
       {Object.entries(groups).map(([groupName, tasks]) => (
         <div key={groupName} className="space-y-4 bg-muted/30 p-6 rounded-lg">
           <h2 className="text-2xl font-semibold capitalize">{groupName}</h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {tasks && tasks.map((task) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                onEdit={() => onEditTask(task)}
-                onDelete={() => onDeleteTask(task)}
-              />
-            ))}
-          </div>
+          {(!tasks || tasks.length === 0) ? (
+            <div className="text-center py-4 text-muted-foreground">
+              No tasks in this category
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {tasks.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onEdit={() => onEditTask(task)}
+                  onDelete={() => onDeleteTask(task)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       ))}
     </div>

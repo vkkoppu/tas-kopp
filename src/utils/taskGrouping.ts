@@ -33,15 +33,20 @@ export const groupTasks = (tasks: Task[], groupBy: "individual" | "shared") => {
     };
   }
 
+  console.log("Grouping tasks:", tasks);
+
   const sharedTasks = tasks.filter(task => 
     Array.isArray(task.assignedTo) && task.assignedTo.length > 1
   );
+  console.log("Shared tasks:", sharedTasks);
+
   const individualTasks = tasks.filter(task => 
     Array.isArray(task.assignedTo) && task.assignedTo.length === 1
   );
+  console.log("Individual tasks:", individualTasks);
   
   return {
-    "Shared Tasks": sharedTasks,
-    "Individual Tasks": individualTasks
+    "Shared Tasks": sharedTasks || [],
+    "Individual Tasks": individualTasks || []
   };
 };
