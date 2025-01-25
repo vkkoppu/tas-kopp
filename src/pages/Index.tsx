@@ -56,12 +56,12 @@ const Index = () => {
         console.log('Fetched family data:', formattedFamilyData);
         setFamilyData(formattedFamilyData);
 
-        // Fetch tasks for this family with their assignments
+        // Fetch tasks for this family with their assignments using left join
         const { data: tasksData, error: tasksError } = await supabase
           .from('tasks')
           .select(`
             *,
-            task_assignments!inner (
+            task_assignments (
               family_member_id,
               family_members (
                 id,
@@ -82,15 +82,11 @@ const Index = () => {
         // Format tasks data
         const formattedTasks: Task[] = tasksData.map(task => {
           // Extract assigned member names, ensuring we handle undefined values
-          const assignedTo = (task.task_assignments || [])
-            .map((assignment: any) => {
-              if (!assignment?.family_members?.name) {
-                console.warn('Missing family member name for assignment:', assignment);
-                return null;
-              }
-              return assignment.family_members.name;
-            })
-            .filter((name: string | null): name is string => Boolean(name));
+          const assignedTo = task.task_assignments
+            ? task.task_assignments
+                .map((assignment: any) => assignment?.family_members?.name)
+                .filter((name: string | undefined): name is string => Boolean(name))
+            : [];
 
           // Log the assigned members for debugging
           console.log(`Task ${task.title} assigned to:`, assignedTo);
