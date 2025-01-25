@@ -33,20 +33,33 @@ export const groupTasks = (tasks: Task[], groupBy: "individual" | "shared") => {
     };
   }
 
-  const validTasks = tasks.filter(task => 
-    task && 
-    typeof task === 'object' && 
-    Array.isArray(task.assignedTo)
-  );
+  // Log the incoming tasks for debugging
+  console.log("Incoming tasks to group:", tasks);
 
-  console.log("Filtering valid tasks:", validTasks);
+  // Make sure each task has the required properties
+  const validTasks = tasks.filter(task => {
+    const isValid = task && 
+                   typeof task === 'object' && 
+                   'id' in task &&
+                   'title' in task &&
+                   'assignedTo' in task &&
+                   Array.isArray(task.assignedTo);
+    
+    if (!isValid) {
+      console.error('Invalid task object:', task);
+    }
+    
+    return isValid;
+  });
+
+  console.log("Valid tasks after filtering:", validTasks);
 
   const sharedTasks = validTasks.filter(task => task.assignedTo.length > 1);
-  console.log("Shared tasks:", sharedTasks);
-
   const individualTasks = validTasks.filter(task => task.assignedTo.length === 1);
-  console.log("Individual tasks:", individualTasks);
-  
+
+  console.log("Grouped shared tasks:", sharedTasks);
+  console.log("Grouped individual tasks:", individualTasks);
+
   return {
     "Shared Tasks": sharedTasks,
     "Individual Tasks": individualTasks

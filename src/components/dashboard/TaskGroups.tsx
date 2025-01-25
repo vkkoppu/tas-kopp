@@ -11,7 +11,16 @@ interface TaskGroupsProps {
 export const TaskGroups = ({ groupedTasks, onEditTask, onDeleteTask }: TaskGroupsProps) => {
   console.log("TaskGroups - Received tasks:", groupedTasks);
   
-  if (!Array.isArray(groupedTasks) || groupedTasks.length === 0) {
+  if (!Array.isArray(groupedTasks)) {
+    console.error("TaskGroups received invalid tasks:", groupedTasks);
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        Error loading tasks
+      </div>
+    );
+  }
+
+  if (groupedTasks.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         No tasks available
