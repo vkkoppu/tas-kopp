@@ -63,7 +63,10 @@ const Index = () => {
             *,
             task_assignments(
               family_member_id,
-              family_members(name)
+              family_members(
+                id,
+                name
+              )
             )
           `)
           .eq('family_id', familiesData.id);
@@ -78,35 +81,21 @@ const Index = () => {
 
         // Format tasks data with proper type checking
         const formattedTasks: Task[] = tasksData.map(task => {
-          // Ensure priority is one of the allowed values
-          let priority: "low" | "medium" | "high" = "medium";
-          if (task.priority === "low" || task.priority === "medium" || task.priority === "high") {
-            priority = task.priority;
-          }
-
-          // Ensure frequency is one of the allowed values
-          let frequency: "once" | "daily" | "weekly" | "custom" = "once";
-          if (
-            task.frequency === "once" ||
-            task.frequency === "daily" ||
-            task.frequency === "weekly" ||
-            task.frequency === "custom"
-          ) {
-            frequency = task.frequency;
-          }
+          // Extract assigned member names from task_assignments
+          const assignedTo = task.task_assignments
+            .map((assignment: any) => assignment.family_members?.name)
+            .filter((name: string | undefined): name is string => Boolean(name));
 
           return {
             id: task.id,
             title: task.title,
-            priority,
-            frequency,
+            priority: task.priority as "low" | "medium" | "high",
+            frequency: task.frequency as "once" | "daily" | "weekly" | "custom",
             customDays: task.custom_days || undefined,
             dueDate: task.due_date || undefined,
             startDate: task.start_date || undefined,
             endDate: task.end_date || undefined,
-            assignedTo: task.task_assignments
-              .map((assignment: any) => assignment.family_members?.name)
-              .filter((name: string | undefined): name is string => Boolean(name))
+            assignedTo
           };
         });
 
