@@ -19,18 +19,45 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
   const [showHistory, setShowHistory] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
+  console.log("Dashboard - Received familyData:", familyData);
+  console.log("Dashboard - Received tasks:", tasks);
+
   const handleAddTask = () => {
+    if (!familyData) {
+      console.error("No family data available");
+      return;
+    }
     setShowTaskForm(true);
   };
 
   const handleRecordActivities = () => {
+    if (!familyData) {
+      console.error("No family data available");
+      return;
+    }
     setShowActivityRecorder(true);
   };
 
   const handleViewHistory = () => {
+    if (!familyData) {
+      console.error("No family data available");
+      return;
+    }
     setShowActivityRecorder(false);
     setShowHistory(true);
   };
+
+  if (!familyData) {
+    console.log("Dashboard - No family data available");
+    return (
+      <div className="p-6">
+        <Navigation />
+        <div className="text-center py-8 text-muted-foreground">
+          No family data available
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -53,8 +80,19 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
           <TaskManager
             tasks={tasks}
             setTasks={setTasks}
-            familyMembers={familyData?.members || []}
-            familyId={familyData?.id || ""}
+            familyMembers={familyData.members}
+            familyId={familyData.id || ""}
+            showTaskForm={showTaskForm}
+            setShowTaskForm={setShowTaskForm}
+          />
+        )}
+
+        {!showTaskForm && tasks.length > 0 && (
+          <TaskManager
+            tasks={tasks}
+            setTasks={setTasks}
+            familyMembers={familyData.members}
+            familyId={familyData.id || ""}
             showTaskForm={showTaskForm}
             setShowTaskForm={setShowTaskForm}
           />
@@ -62,7 +100,7 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
 
         {showActivityRecorder && (
           <ActivityRecorder
-            familyMembers={familyData?.members || []}
+            familyMembers={familyData.members}
             tasks={tasks}
             onClose={() => setShowActivityRecorder(false)}
             records={[]}

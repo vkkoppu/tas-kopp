@@ -21,9 +21,10 @@ export const TaskGroups = ({ groupedTasks, onEditTask, onDeleteTask }: TaskGroup
   }
 
   if (groupedTasks.length === 0) {
+    console.log("TaskGroups - No tasks available");
     return (
       <div className="text-center py-8 text-muted-foreground">
-        No tasks available
+        No tasks available. Click "Add Task" to create your first task.
       </div>
     );
   }
