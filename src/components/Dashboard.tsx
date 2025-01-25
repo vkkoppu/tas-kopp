@@ -6,6 +6,7 @@ import { FamilyData } from "@/types/family";
 import { Task } from "@/types/task";
 import { Button } from "@/components/ui/button";
 import { Navigation } from "@/components/Navigation";
+import { FamilyDetailsForm } from "@/components/FamilyDetailsForm";
 
 interface DashboardProps {
   familyData: FamilyData | null;
@@ -47,14 +48,18 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
     setShowHistory(true);
   };
 
+  const handleFamilySubmit = (data: { familyName: string; members: { name: string; role: string; }[] }) => {
+    // The FamilyDetailsForm component handles the actual submission
+    // We just need to refresh the page to show the updated data
+    window.location.reload();
+  };
+
   if (!familyData) {
-    console.log("Dashboard - No family data available");
+    console.log("Dashboard - No family data available, showing family setup form");
     return (
       <div className="p-6">
         <Navigation />
-        <div className="text-center py-8 text-muted-foreground">
-          No family data available
-        </div>
+        <FamilyDetailsForm onSubmit={handleFamilySubmit} />
       </div>
     );
   }
