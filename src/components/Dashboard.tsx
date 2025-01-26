@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { TaskManager } from "@/components/dashboard/TaskManager";
 import { TaskHistory } from "@/components/dashboard/TaskHistory";
 import { ActivityRecorder } from "@/components/ActivityRecorder";
@@ -7,8 +6,9 @@ import { Task } from "@/types/task";
 import { Button } from "@/components/ui/button";
 import { Navigation } from "@/components/Navigation";
 import { FamilyDetailsForm } from "@/components/FamilyDetailsForm";
-import { ActivityRecord } from "./activity-recorder/types";
-import { useToast } from "./ui/use-toast";
+import { useActivityRecording } from "@/hooks/dashboard/useActivityRecording";
+import { useHistoryView } from "@/hooks/dashboard/useHistoryView";
+import { useTaskManagement } from "@/hooks/dashboard/useTaskManagement";
 
 interface DashboardProps {
   familyData: FamilyData | null;
@@ -17,23 +17,27 @@ interface DashboardProps {
 }
 
 export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
-  const [showTaskForm, setShowTaskForm] = useState(false);
-  const [showActivityRecorder, setShowActivityRecorder] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [taskRecords, setTaskRecords] = useState<ActivityRecord[]>([]);
-  const { toast } = useToast();
+  const {
+    showTaskForm,
+    setShowTaskForm,
+    handleAddTask
+  } = useTaskManagement();
+
+  const {
+    showActivityRecorder,
+    setShowActivityRecorder,
+    taskRecords,
+    handleActivityRecorded
+  } = useActivityRecording();
+
+  const {
+    showHistory,
+    setShowHistory,
+    handleViewHistory
+  } = useHistoryView();
 
   console.log("Dashboard - Received familyData:", familyData);
   console.log("Dashboard - Received tasks:", tasks);
-
-  const handleAddTask = () => {
-    if (!familyData) {
-      console.error("No family data available");
-      return;
-    }
-    setShowTaskForm(true);
-  };
 
   const handleRecordActivities = () => {
     if (!familyData) {
@@ -44,35 +48,8 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
     setShowActivityRecorder(true);
   };
 
-  const handleViewHistory = () => {
-    if (!familyData) {
-      console.error("No family data available");
-      return;
-    }
-    setShowActivityRecorder(false); // Close activity recorder if open
-    setShowHistory(true);
-  };
-
-  const handleFamilySubmit = (data: { familyName: string; members: { name: string; role: string; }[] }) => {
+  const handleFamilySubmit = () => {
     window.location.reload();
-  };
-
-  const handleActivityRecorded = async (newRecords: ActivityRecord[]) => {
-    try {
-      setTaskRecords(prev => [...prev, ...newRecords]);
-      setShowActivityRecorder(false);
-      toast({
-        title: "Success",
-        description: "Activities recorded successfully",
-      });
-    } catch (error) {
-      console.error('Error handling activity records:', error);
-      toast({
-        title: "Error",
-        description: "Failed to record activities",
-        variant: "destructive",
-      });
-    }
   };
 
   if (!familyData) {
@@ -91,13 +68,13 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
       <div className="p-6 max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold mb-6">Family Dashboard</h1>
         <div className="flex flex-wrap gap-4 mb-8">
-          <Button onClick={handleAddTask} variant="default">
+          <Button onClick={() => handleAddTask(!!familyData)} variant="default">
             Add Task
           </Button>
           <Button onClick={handleRecordActivities} variant="secondary">
             Record Activities
           </Button>
-          <Button onClick={handleViewHistory} variant="secondary">
+          <Button onClick={() => handleViewHistory(!!familyData)} variant="secondary">
             View History
           </Button>
         </div>
