@@ -125,6 +125,7 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
             records={taskRecords}
             tasks={tasks}
             onClose={() => setShowHistory(false)}
+            familyMembers={familyData.members}
           />
         )}
       </div>
