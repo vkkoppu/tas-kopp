@@ -98,7 +98,7 @@ export const ActivityForm = ({ tasks, familyMembers, onSave, records }: Activity
                     </div>
                     <div className="flex items-center gap-2">
                       <Select
-                        defaultValue={record.completedBy}
+                        value={record.completedBy}
                         onValueChange={(value) => handleEditRecord(record, value)}
                       >
                         <SelectTrigger className="w-[140px]">
