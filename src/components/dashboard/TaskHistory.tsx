@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { Task } from "@/types/task";
 import { ActivityRecord } from "@/components/activity-recorder/shared-types";
 
@@ -18,6 +18,21 @@ export const TaskHistory = ({ records, tasks, onClose }: TaskHistoryProps) => {
     return task ? task.title : 'Unknown Task';
   };
 
+  // Group records by date
+  const groupedRecords = records.reduce((acc, record) => {
+    const date = format(new Date(record.date), 'yyyy-MM-dd');
+    if (!acc[date]) {
+      acc[date] = [];
+    }
+    acc[date].push(record);
+    return acc;
+  }, {} as Record<string, ActivityRecord[]>);
+
+  // Sort dates in descending order
+  const sortedDates = Object.keys(groupedRecords).sort((a, b) => 
+    parseISO(b).getTime() - parseISO(a).getTime()
+  );
+
   return (
     <Card className="fixed inset-4 z-40 flex flex-col bg-background md:inset-auto md:left-1/2 md:top-1/2 md:max-w-2xl md:-translate-x-1/2 md:-translate-y-1/2 md:h-[80vh]">
       <div className="flex items-center justify-between p-4 border-b">
@@ -32,17 +47,23 @@ export const TaskHistory = ({ records, tasks, onClose }: TaskHistoryProps) => {
       <div className="flex-1 p-6">
         <ScrollArea className="h-full">
           {records.length > 0 ? (
-            <div className="space-y-4">
-              {records.map((record, index) => (
-                <div key={index} className="flex items-center justify-between py-2 border-b last:border-0">
-                  <div className="space-y-1">
-                    <div className="font-medium">{getTaskTitle(record.taskId)}</div>
-                    <div className="text-sm text-muted-foreground">
-                      Completed by: {record.completedBy}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Date: {format(new Date(record.date), 'PPP')}
-                    </div>
+            <div className="space-y-6">
+              {sortedDates.map((date) => (
+                <div key={date} className="space-y-4">
+                  <h3 className="text-lg font-semibold sticky top-0 bg-background py-2">
+                    {format(parseISO(date), 'PPPP')}
+                  </h3>
+                  <div className="space-y-4">
+                    {groupedRecords[date].map((record, index) => (
+                      <div key={index} className="flex items-center justify-between py-2 border-b last:border-0">
+                        <div className="space-y-1">
+                          <div className="font-medium">{getTaskTitle(record.taskId)}</div>
+                          <div className="text-sm text-muted-foreground">
+                            Completed by: {record.completedBy}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               ))}

@@ -40,6 +40,7 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
       console.error("No family data available");
       return;
     }
+    setShowHistory(false); // Close history window if open
     setShowActivityRecorder(true);
   };
 
@@ -48,13 +49,11 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
       console.error("No family data available");
       return;
     }
-    setShowActivityRecorder(false);
+    setShowActivityRecorder(false); // Close activity recorder if open
     setShowHistory(true);
   };
 
   const handleFamilySubmit = (data: { familyName: string; members: { name: string; role: string; }[] }) => {
-    // The FamilyDetailsForm component handles the actual submission
-    // We just need to refresh the page to show the updated data
     window.location.reload();
   };
 
