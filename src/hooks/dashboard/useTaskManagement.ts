@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { Task } from "@/types/task";
+import { toast } from "sonner";
 
 export const useTaskManagement = () => {
   const [showTaskForm, setShowTaskForm] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const handleAddTask = (hasFamilyData: boolean) => {
     if (!hasFamilyData) {
       console.error("No family data available");
+      toast.error("No family data available");
       return;
     }
     setShowTaskForm(true);
@@ -16,8 +16,6 @@ export const useTaskManagement = () => {
   return {
     showTaskForm,
     setShowTaskForm,
-    editingTask,
-    setEditingTask,
     handleAddTask
   };
 };

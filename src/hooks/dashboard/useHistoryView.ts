@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 
 export const useHistoryView = () => {
   const [showHistory, setShowHistory] = useState(false);
@@ -6,6 +7,7 @@ export const useHistoryView = () => {
   const handleViewHistory = (hasFamilyData: boolean) => {
     if (!hasFamilyData) {
       console.error("No family data available");
+      toast.error("No family data available");
       return;
     }
     setShowHistory(true);

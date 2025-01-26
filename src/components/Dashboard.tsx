@@ -44,8 +44,17 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
       console.error("No family data available");
       return;
     }
-    setShowHistory(false); // Close history window if open
+    if (showHistory) {
+      setShowHistory(false);
+    }
     setShowActivityRecorder(true);
+  };
+
+  const handleShowHistory = () => {
+    if (showActivityRecorder) {
+      setShowActivityRecorder(false);
+    }
+    handleViewHistory(!!familyData);
   };
 
   const handleFamilySubmit = () => {
@@ -74,7 +83,7 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
           <Button onClick={handleRecordActivities} variant="secondary">
             Record Activities
           </Button>
-          <Button onClick={() => handleViewHistory(!!familyData)} variant="secondary">
+          <Button onClick={handleShowHistory} variant="secondary">
             View History
           </Button>
         </div>
