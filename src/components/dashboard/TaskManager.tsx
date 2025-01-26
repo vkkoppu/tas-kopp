@@ -3,6 +3,8 @@ import { TaskGroups } from "./TaskGroups";
 import { Task } from "@/types/task";
 import { FamilyMember } from "@/types/family";
 import { useTaskOperations } from "@/hooks/tasks/useTaskOperations";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface TaskManagerProps {
   tasks: Task[];
@@ -27,14 +29,6 @@ export const TaskManager = ({
     handleSubmit,
   } = useTaskOperations(tasks, setTasks, familyId);
 
-  const handleTaskSubmit = async (taskData: any) => {
-    const success = await handleSubmit(taskData);
-    if (success) {
-      setShowTaskForm(false);
-      setEditingTask(null);
-    }
-  };
-
   return (
     <div className="relative">
       {showTaskForm && (
@@ -43,7 +37,7 @@ export const TaskManager = ({
             setShowTaskForm(false);
             setEditingTask(null);
           }}
-          onSubmit={handleTaskSubmit}
+          onSubmit={handleSubmit}
           editingTask={editingTask}
           tasks={tasks}
           setTasks={setTasks}
