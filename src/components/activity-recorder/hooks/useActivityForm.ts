@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { FilterState, ActivityRecord } from "../shared-types";
-import { useToast } from "../../ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Task } from "@/types/task";
 import { FamilyMember } from "@/types/family";
@@ -42,6 +42,95 @@ export const useActivityForm = (
       newCompletedTasks.add(taskId);
     }
     setCompletedTasks(newCompletedTasks);
+  };
+
+  const handleEditRecord = async (record: ActivityRecord, newCompletedBy: string) => {
+    try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        toast({
+          title: "Authentication Error",
+          description: "Please sign in to edit activities.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const familyMember = familyMembers.find(m => m.name === newCompletedBy);
+      if (!familyMember) {
+        toast({
+          title: "Error",
+          description: "Family member not found",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Find the task record to update
+      const { data: taskRecords, error: fetchError } = await supabase
+        .from('task_records')
+        .select('*')
+        .eq('task_id', record.taskId)
+        .eq('completed_at', record.date);
+
+      if (fetchError) {
+        console.error('Error fetching task record:', fetchError);
+        toast({
+          title: "Error",
+          description: "Failed to find the activity record",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!taskRecords || taskRecords.length === 0) {
+        toast({
+          title: "Error",
+          description: "Activity record not found",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Update the task record
+      const { error: updateError } = await supabase
+        .from('task_records')
+        .update({ completed_by: familyMember.id })
+        .eq('id', taskRecords[0].id);
+
+      if (updateError) {
+        console.error('Error updating task record:', updateError);
+        toast({
+          title: "Error",
+          description: "Failed to update the activity record",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Update local state
+      const updatedRecords = records.map(r => {
+        if (r.taskId === record.taskId && r.date === record.date) {
+          return { ...r, completedBy: newCompletedBy };
+        }
+        return r;
+      });
+
+      await onSave(updatedRecords);
+      
+      toast({
+        title: "Success",
+        description: "Activity record updated successfully",
+      });
+    } catch (error) {
+      console.error('Error editing record:', error);
+      toast({
+        title: "Error",
+        description: "Failed to edit activity record",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSave = async () => {
@@ -148,5 +237,6 @@ export const useActivityForm = (
     isTaskCompletedForDate,
     handleTaskToggle,
     handleSave,
+    handleEditRecord,
   };
 };

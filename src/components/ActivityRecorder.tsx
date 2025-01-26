@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { ListCheck, X } from "lucide-react";
 import { ActivityRecorderProps } from "./activity-recorder/types";
 import { ActivityForm } from "./activity-recorder/ActivityForm";
+import { ScrollArea } from "./ui/scroll-area";
 
 export const ActivityRecorder = ({ 
   familyMembers, 
@@ -23,16 +24,18 @@ export const ActivityRecorder = ({
         </Button>
       </div>
       
-      <div className="flex-1 flex flex-col p-6">
-        <ActivityForm
-          tasks={tasks}
-          familyMembers={familyMembers}
-          onSave={async (newRecords) => {
-            await onRecordAdded(newRecords);
-          }}
-          records={records}
-        />
-      </div>
+      <ScrollArea className="flex-1">
+        <div className="p-6">
+          <ActivityForm
+            tasks={tasks}
+            familyMembers={familyMembers}
+            onSave={async (newRecords) => {
+              await onRecordAdded(newRecords);
+            }}
+            records={records}
+          />
+        </div>
+      </ScrollArea>
     </Card>
   );
 };
