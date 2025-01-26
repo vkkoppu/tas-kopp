@@ -19,10 +19,11 @@ export const useActivityForm = (
   });
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
   const [completedBy, setCompletedBy] = useState<Record<string, string[]>>({});
+  const [localRecords, setLocalRecords] = useState<ActivityRecord[]>(records);
 
   const isTaskCompletedForDate = (taskId: string) => {
     const formattedDate = format(filterState.selectedDate, 'yyyy-MM-dd');
-    return records.some(record => 
+    return localRecords.some(record => 
       record.taskId === taskId && 
       record.date === formattedDate
     );
@@ -48,11 +49,10 @@ export const useActivityForm = (
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError || !session) {
-        toast("Authentication Error: Please sign in to delete activities.");
+        toast.error("Authentication Error: Please sign in to delete activities.");
         return;
       }
 
-      // Find the task record to delete
       const { data: taskRecords, error: fetchError } = await supabase
         .from('task_records')
         .select('*')
@@ -61,17 +61,16 @@ export const useActivityForm = (
 
       if (fetchError) {
         console.error('Error fetching task record:', fetchError);
-        toast("Failed to find the activity record");
+        toast.error("Failed to find the activity record");
         return;
       }
 
       if (!taskRecords || taskRecords.length === 0) {
         console.error('No task records found for:', { taskId: record.taskId, date: record.date });
-        toast("Activity record not found in database");
+        toast.error("Activity record not found in database");
         return;
       }
 
-      // Delete the task record
       const { error: deleteError } = await supabase
         .from('task_records')
         .delete()
@@ -79,20 +78,19 @@ export const useActivityForm = (
 
       if (deleteError) {
         console.error('Error deleting task record:', deleteError);
-        toast("Failed to delete the activity record");
+        toast.error("Failed to delete the activity record");
         return;
       }
 
-      // Update local state
-      const updatedRecords = records.filter(r => 
+      const updatedRecords = localRecords.filter(r => 
         !(r.taskId === record.taskId && r.date === record.date && r.completedBy === record.completedBy)
       );
-
+      setLocalRecords(updatedRecords);
       await onSave(updatedRecords);
-      toast("Activity record deleted successfully");
+      toast.success("Activity record deleted successfully");
     } catch (error) {
       console.error('Error in handleDeleteRecord:', error);
-      toast("Failed to delete activity record");
+      toast.error("Failed to delete activity record");
     }
   };
 
@@ -101,17 +99,16 @@ export const useActivityForm = (
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError || !session) {
-        toast("Authentication Error: Please sign in to edit activities.");
+        toast.error("Authentication Error: Please sign in to edit activities.");
         return;
       }
 
       const familyMember = familyMembers.find(m => m.name === newCompletedBy);
       if (!familyMember) {
-        toast("Family member not found");
+        toast.error("Family member not found");
         return;
       }
 
-      // Find the task record to update
       const { data: taskRecords, error: fetchError } = await supabase
         .from('task_records')
         .select('*')
@@ -120,17 +117,16 @@ export const useActivityForm = (
 
       if (fetchError) {
         console.error('Error fetching task record:', fetchError);
-        toast("Failed to find the activity record");
+        toast.error("Failed to find the activity record");
         return;
       }
 
       if (!taskRecords || taskRecords.length === 0) {
         console.error('No task records found for:', { taskId: record.taskId, date: record.date });
-        toast("Activity record not found in database");
+        toast.error("Activity record not found in database");
         return;
       }
 
-      // Update the task record
       const { error: updateError } = await supabase
         .from('task_records')
         .update({ completed_by: familyMember.id })
@@ -138,23 +134,24 @@ export const useActivityForm = (
 
       if (updateError) {
         console.error('Error updating task record:', updateError);
-        toast("Failed to update the activity record");
+        toast.error("Failed to update the activity record");
         return;
       }
 
       // Update local state
-      const updatedRecords = records.map(r => {
+      const updatedRecords = localRecords.map(r => {
         if (r.taskId === record.taskId && r.date === record.date) {
           return { ...r, completedBy: newCompletedBy };
         }
         return r;
       });
 
+      setLocalRecords(updatedRecords);
       await onSave(updatedRecords);
-      toast("Activity record updated successfully");
+      toast.success("Activity record updated successfully");
     } catch (error) {
       console.error('Error in handleEditRecord:', error);
-      toast("Failed to edit activity record");
+      toast.error("Failed to edit activity record");
     }
   };
 
@@ -163,7 +160,7 @@ export const useActivityForm = (
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError || !session) {
-        toast("Authentication Error: Please sign in to record activities.");
+        toast.error("Authentication Error: Please sign in to record activities.");
         return;
       }
 
@@ -223,18 +220,20 @@ export const useActivityForm = (
       }
 
       if (errors.length > 0) {
-        toast("Some records failed to save: " + errors.join(', '));
+        toast.error("Some records failed to save: " + errors.join(', '));
         return;
       }
 
-      await onSave(newRecords);
+      const updatedRecords = [...localRecords, ...newRecords];
+      setLocalRecords(updatedRecords);
+      await onSave(updatedRecords);
       setCompletedTasks(new Set());
       setCompletedBy({});
       
-      toast("Activities recorded successfully");
+      toast.success("Activities recorded successfully");
     } catch (error) {
       console.error('Error saving records:', error);
-      toast("Failed to save activities. Please try again.");
+      toast.error("Failed to save activities. Please try again.");
     }
   };
 
