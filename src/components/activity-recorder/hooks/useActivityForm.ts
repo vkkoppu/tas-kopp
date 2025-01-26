@@ -12,6 +12,7 @@ export const useActivityForm = (
   onSave: (records: ActivityRecord[]) => Promise<void>,
   records: ActivityRecord[]
 ) => {
+  // Move all useState declarations to the top
   const [filterState, setFilterState] = useState<FilterState>({
     viewMode: "all",
     selectedDate: new Date(),
