@@ -11,7 +11,14 @@ import Profile from "./pages/Profile";
 import type { User } from "@supabase/supabase-js";
 import { toast } from "sonner";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -86,9 +93,7 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+        <BrowserRouter basename="/">
           <Routes>
             <Route
               path="/"
@@ -103,6 +108,8 @@ const App = () => {
               element={user ? <Profile /> : <Navigate to="/auth" replace />}
             />
           </Routes>
+          <Toaster />
+          <Sonner />
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
