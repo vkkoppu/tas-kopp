@@ -19,6 +19,7 @@ interface TaskHistoryProps {
 
 export const TaskHistory = ({ records, tasks, onClose, familyMembers }: TaskHistoryProps) => {
   const [editingRecord, setEditingRecord] = useState<ActivityRecord | null>(null);
+  const [localRecords, setLocalRecords] = useState<ActivityRecord[]>(records);
 
   const getTaskTitle = (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
@@ -33,24 +34,46 @@ export const TaskHistory = ({ records, tasks, onClose, familyMembers }: TaskHist
         return;
       }
 
-      const { error } = await supabase
+      const { data: taskRecords, error: fetchError } = await supabase
         .from('task_records')
-        .update({ 
-          completed_by: familyMember.id 
-        })
+        .select('*')
         .eq('task_id', record.taskId)
         .eq('completed_at', record.date);
 
-      if (error) {
-        console.error('Error updating record:', error);
-        toast.error("Failed to update record");
+      if (fetchError) {
+        console.error('Error fetching task record:', fetchError);
+        toast.error("Failed to find the activity record");
+        return;
+      }
+
+      if (!taskRecords || taskRecords.length === 0) {
+        console.error('No task records found for:', { taskId: record.taskId, date: record.date });
+        toast.error("Activity record not found in database");
+        return;
+      }
+
+      const { error: updateError } = await supabase
+        .from('task_records')
+        .update({ completed_by: familyMember.id })
+        .eq('id', taskRecords[0].id);
+
+      if (updateError) {
+        console.error('Error updating task record:', updateError);
+        toast.error("Failed to update the activity record");
         return;
       }
 
       // Update local state
-      const updatedRecord = { ...record, completedBy: newCompletedBy };
-      toast.success("Record updated successfully");
+      const updatedRecords = localRecords.map(r => {
+        if (r.taskId === record.taskId && r.date === record.date) {
+          return { ...r, completedBy: newCompletedBy };
+        }
+        return r;
+      });
+
+      setLocalRecords(updatedRecords);
       setEditingRecord(null);
+      toast.success("Record updated successfully");
     } catch (error) {
       console.error('Error in handleEditRecord:', error);
       toast.error("Failed to update record");
@@ -58,7 +81,7 @@ export const TaskHistory = ({ records, tasks, onClose, familyMembers }: TaskHist
   };
 
   // Group records by date
-  const groupedRecords = records.reduce((acc, record) => {
+  const groupedRecords = localRecords.reduce((acc, record) => {
     const date = format(new Date(record.date), 'yyyy-MM-dd');
     if (!acc[date]) {
       acc[date] = [];
@@ -84,7 +107,7 @@ export const TaskHistory = ({ records, tasks, onClose, familyMembers }: TaskHist
       </div>
       
       <ScrollArea className="flex-1 p-6">
-        {records.length > 0 ? (
+        {localRecords.length > 0 ? (
           <div className="space-y-6">
             {sortedDates.map((date) => (
               <div key={date} className="space-y-4">
@@ -96,9 +119,9 @@ export const TaskHistory = ({ records, tasks, onClose, familyMembers }: TaskHist
                     <div key={index} className="flex items-center justify-between py-2 border-b last:border-0">
                       <div className="space-y-1">
                         <div className="font-medium">{getTaskTitle(record.taskId)}</div>
-                        {editingRecord?.taskId === record.taskId ? (
+                        {editingRecord?.taskId === record.taskId && editingRecord?.date === record.date ? (
                           <Select
-                            value={record.completedBy}
+                            defaultValue={record.completedBy}
                             onValueChange={(value) => handleEditRecord(record, value)}
                           >
                             <SelectTrigger className="w-[200px]">
