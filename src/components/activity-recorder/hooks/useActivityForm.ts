@@ -44,6 +44,82 @@ export const useActivityForm = (
     setCompletedTasks(newCompletedTasks);
   };
 
+  const handleDeleteRecord = async (record: ActivityRecord) => {
+    try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        toast({
+          title: "Authentication Error",
+          description: "Please sign in to delete activities.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Find the task record to delete
+      const { data: taskRecords, error: fetchError } = await supabase
+        .from('task_records')
+        .select('*')
+        .eq('task_id', record.taskId)
+        .eq('completed_at', record.date);
+
+      if (fetchError) {
+        console.error('Error fetching task record:', fetchError);
+        toast({
+          title: "Error",
+          description: "Failed to find the activity record",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!taskRecords || taskRecords.length === 0) {
+        toast({
+          title: "Error",
+          description: "Activity record not found",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Delete the task record
+      const { error: deleteError } = await supabase
+        .from('task_records')
+        .delete()
+        .eq('id', taskRecords[0].id);
+
+      if (deleteError) {
+        console.error('Error deleting task record:', deleteError);
+        toast({
+          title: "Error",
+          description: "Failed to delete the activity record",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Update local state
+      const updatedRecords = records.filter(r => 
+        !(r.taskId === record.taskId && r.date === record.date && r.completedBy === record.completedBy)
+      );
+
+      await onSave(updatedRecords);
+      
+      toast({
+        title: "Success",
+        description: "Activity record deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error deleting record:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete activity record",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleEditRecord = async (record: ActivityRecord, newCompletedBy: string) => {
     try {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -238,5 +314,6 @@ export const useActivityForm = (
     handleTaskToggle,
     handleSave,
     handleEditRecord,
+    handleDeleteRecord,
   };
 };

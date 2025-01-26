@@ -7,6 +7,7 @@ import { useActivityForm } from "./hooks/useActivityForm";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { format } from "date-fns";
+import { Trash2 } from "lucide-react";
 
 export const ActivityForm = ({ tasks, familyMembers, onSave, records }: ActivityFormProps) => {
   const {
@@ -19,6 +20,7 @@ export const ActivityForm = ({ tasks, familyMembers, onSave, records }: Activity
     handleTaskToggle,
     handleSave,
     handleEditRecord,
+    handleDeleteRecord,
   } = useActivityForm(tasks, familyMembers, onSave, records);
 
   const filteredTasks = tasks.filter(task => {
@@ -88,27 +90,37 @@ export const ActivityForm = ({ tasks, familyMembers, onSave, records }: Activity
 
                 return (
                   <div key={`${record.taskId}-${record.date}-${record.completedBy}`} className="flex items-center justify-between border-b pb-2">
-                    <div>
+                    <div className="flex-grow">
                       <p className="font-medium">{task.title}</p>
                       <p className="text-sm text-muted-foreground">
                         Completed by {record.completedBy} on {format(new Date(record.date), 'MMM dd, yyyy')}
                       </p>
                     </div>
-                    <Select
-                      value={record.completedBy}
-                      onValueChange={(value) => handleEditRecord(record, value)}
-                    >
-                      <SelectTrigger className="w-[140px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {familyMembers.map((member) => (
-                          <SelectItem key={member.id} value={member.name}>
-                            {member.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center gap-2">
+                      <Select
+                        value={record.completedBy}
+                        onValueChange={(value) => handleEditRecord(record, value)}
+                      >
+                        <SelectTrigger className="w-[140px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {familyMembers.map((member) => (
+                            <SelectItem key={member.id} value={member.name}>
+                              {member.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteRecord(record)}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 );
               })}
