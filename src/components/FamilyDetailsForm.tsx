@@ -93,35 +93,37 @@ export const FamilyDetailsForm = ({ onSubmit, initialValues }: FamilyDetailsForm
   const isLoading = createFamily.isPending || updateFamily.isPending;
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-8 animate-fade-in">
+    <div className="max-w-2xl mx-auto p-6 space-y-8 animate-fade-in bg-pastel-purple rounded-lg shadow-md">
       <div className="text-center">
-        <h1 className="text-3xl font-bold mb-2">Welcome to Family Tasks</h1>
-        <p className="text-muted-foreground">Let's start by setting up your family</p>
+        <h1 className="text-3xl font-bold mb-2 text-purple-tertiary">Welcome to Family Tasks</h1>
+        <p className="text-neutral-mediumGray">Let's start by setting up your family</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="familyName">Family Name</Label>
+          <Label htmlFor="familyName" className="text-purple-secondary">Family Name</Label>
           <Input
             id="familyName"
             value={familyName}
             onChange={(e) => setFamilyName(e.target.value)}
             placeholder="Enter your family name"
             required
+            className="bg-pastel-blue/50 border-purple-light focus:border-purple-primary"
           />
         </div>
 
         <div className="space-y-4">
-          <Label>Family Members</Label>
+          <Label className="text-purple-secondary">Family Members</Label>
           <div className="space-y-4">
             {members.map((member, index) => (
-              <div key={index} className="flex flex-col sm:flex-row gap-4">
+              <div key={index} className="flex flex-col sm:flex-row gap-4 bg-pastel-peach/30 p-4 rounded-lg">
                 <div className="flex-1">
                   <Input
                     value={member.name}
                     onChange={(e) => updateMember(index, "name", e.target.value)}
                     placeholder="Member name"
                     required
+                    className="bg-white/80 border-purple-light focus:border-purple-primary"
                   />
                 </div>
                 <div className="flex-1">
@@ -129,7 +131,7 @@ export const FamilyDetailsForm = ({ onSubmit, initialValues }: FamilyDetailsForm
                     value={member.role}
                     onValueChange={(value) => updateMember(index, "role", value)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-white/80 border-purple-light">
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
@@ -145,6 +147,7 @@ export const FamilyDetailsForm = ({ onSubmit, initialValues }: FamilyDetailsForm
                   size="icon"
                   onClick={() => handleDeleteMember(index)}
                   disabled={members.length === 1}
+                  className="bg-bright-red hover:bg-bright-red/90"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -154,10 +157,19 @@ export const FamilyDetailsForm = ({ onSubmit, initialValues }: FamilyDetailsForm
         </div>
 
         <div className="flex flex-col gap-4">
-          <Button type="button" variant="outline" onClick={handleAddMember}>
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={handleAddMember}
+            className="bg-pastel-green hover:bg-pastel-green/80 text-purple-tertiary border-purple-light"
+          >
             Add Family Member
           </Button>
-          <Button type="submit" disabled={!isFormValid || isLoading}>
+          <Button 
+            type="submit" 
+            disabled={!isFormValid || isLoading}
+            className="bg-purple-primary hover:bg-purple-primary/90 text-white"
+          >
             {isLoading ? "Saving..." : initialValues ? "Save Changes" : "Continue"}
           </Button>
         </div>

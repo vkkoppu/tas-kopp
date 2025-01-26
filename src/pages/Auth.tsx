@@ -13,7 +13,6 @@ const AuthPage = () => {
       if (event === "SIGNED_IN") {
         navigate("/");
       }
-      // Handle authentication errors
       if (event === "SIGNED_OUT") {
         toast.error("You have been signed out");
       }
@@ -23,11 +22,11 @@ const AuthPage = () => {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md space-y-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pastel-purple to-pastel-blue p-4">
+      <div className="w-full max-w-md space-y-4 bg-white/90 p-8 rounded-xl shadow-lg backdrop-blur-sm">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold">Welcome to Family Tasks</h1>
-          <p className="text-muted-foreground">Manage your family tasks efficiently</p>
+          <h1 className="text-3xl font-bold text-purple-tertiary">Welcome to Family Tasks</h1>
+          <p className="text-neutral-mediumGray">Manage your family tasks efficiently</p>
         </div>
         <Auth
           supabaseClient={supabase}
@@ -36,10 +35,20 @@ const AuthPage = () => {
             variables: {
               default: {
                 colors: {
-                  brand: 'rgb(var(--primary))',
-                  brandAccent: 'rgb(var(--primary))',
+                  brand: '#9B87F5',
+                  brandAccent: '#7E69AB',
+                  inputBackground: 'rgb(229, 222, 255, 0.3)',
+                  inputText: '#1A1F2C',
+                  inputBorder: '#D6BCFA',
+                  inputBorderFocus: '#9B87F5',
                 }
               }
+            },
+            className: {
+              container: 'bg-pastel-purple/10 p-4 rounded-lg',
+              button: 'bg-purple-primary hover:bg-purple-secondary text-white',
+              input: 'bg-pastel-blue/30 border-purple-light focus:border-purple-primary',
+              label: 'text-purple-tertiary',
             }
           }}
           providers={[]}
