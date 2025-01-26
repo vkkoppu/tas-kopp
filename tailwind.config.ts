@@ -67,6 +67,29 @@ export default {
           blue: "#D3E4FD",
           gray: "#F1F0FB",
         },
+        neutral: {
+          gray: "#8E9196",
+          softGray: "#F1F0FB",
+          lightGray: "#C8C8C9",
+          mediumGray: "#8A898C",
+          coolGray: "#AAADB0",
+        },
+        purple: {
+          primary: "#9B87F5",
+          secondary: "#7E69AB",
+          tertiary: "#6E59A5",
+          dark: "#1A1F2C",
+          light: "#D6BCFA",
+          soft: "#E5DEFF",
+          vivid: "#8B5CF6",
+        },
+        bright: {
+          orange: "#F97316",
+          blue: "#0EA5E9",
+          skyBlue: "#33C3F0",
+          oceanBlue: "#1EAEDB",
+          red: "#EA384C",
+        },
       },
       keyframes: {
         "accordion-down": {
