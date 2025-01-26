@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { FilterState, ActivityRecord } from "../shared-types";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Task } from "@/types/task";
 import { FamilyMember } from "@/types/family";
@@ -19,7 +19,6 @@ export const useActivityForm = (
   });
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
   const [completedBy, setCompletedBy] = useState<Record<string, string[]>>({});
-  const { toast } = useToast();
 
   const isTaskCompletedForDate = (taskId: string) => {
     const formattedDate = format(filterState.selectedDate, 'yyyy-MM-dd');
@@ -49,11 +48,7 @@ export const useActivityForm = (
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError || !session) {
-        toast({
-          title: "Authentication Error",
-          description: "Please sign in to delete activities.",
-          variant: "destructive",
-        });
+        toast("Authentication Error: Please sign in to delete activities.");
         return;
       }
 
@@ -66,20 +61,13 @@ export const useActivityForm = (
 
       if (fetchError) {
         console.error('Error fetching task record:', fetchError);
-        toast({
-          title: "Error",
-          description: "Failed to find the activity record",
-          variant: "destructive",
-        });
+        toast("Failed to find the activity record");
         return;
       }
 
       if (!taskRecords || taskRecords.length === 0) {
-        toast({
-          title: "Error",
-          description: "Activity record not found",
-          variant: "destructive",
-        });
+        console.error('No task records found for:', { taskId: record.taskId, date: record.date });
+        toast("Activity record not found in database");
         return;
       }
 
@@ -91,11 +79,7 @@ export const useActivityForm = (
 
       if (deleteError) {
         console.error('Error deleting task record:', deleteError);
-        toast({
-          title: "Error",
-          description: "Failed to delete the activity record",
-          variant: "destructive",
-        });
+        toast("Failed to delete the activity record");
         return;
       }
 
@@ -105,18 +89,10 @@ export const useActivityForm = (
       );
 
       await onSave(updatedRecords);
-      
-      toast({
-        title: "Success",
-        description: "Activity record deleted successfully",
-      });
+      toast("Activity record deleted successfully");
     } catch (error) {
-      console.error('Error deleting record:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete activity record",
-        variant: "destructive",
-      });
+      console.error('Error in handleDeleteRecord:', error);
+      toast("Failed to delete activity record");
     }
   };
 
@@ -125,21 +101,13 @@ export const useActivityForm = (
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError || !session) {
-        toast({
-          title: "Authentication Error",
-          description: "Please sign in to edit activities.",
-          variant: "destructive",
-        });
+        toast("Authentication Error: Please sign in to edit activities.");
         return;
       }
 
       const familyMember = familyMembers.find(m => m.name === newCompletedBy);
       if (!familyMember) {
-        toast({
-          title: "Error",
-          description: "Family member not found",
-          variant: "destructive",
-        });
+        toast("Family member not found");
         return;
       }
 
@@ -152,20 +120,13 @@ export const useActivityForm = (
 
       if (fetchError) {
         console.error('Error fetching task record:', fetchError);
-        toast({
-          title: "Error",
-          description: "Failed to find the activity record",
-          variant: "destructive",
-        });
+        toast("Failed to find the activity record");
         return;
       }
 
       if (!taskRecords || taskRecords.length === 0) {
-        toast({
-          title: "Error",
-          description: "Activity record not found",
-          variant: "destructive",
-        });
+        console.error('No task records found for:', { taskId: record.taskId, date: record.date });
+        toast("Activity record not found in database");
         return;
       }
 
@@ -177,11 +138,7 @@ export const useActivityForm = (
 
       if (updateError) {
         console.error('Error updating task record:', updateError);
-        toast({
-          title: "Error",
-          description: "Failed to update the activity record",
-          variant: "destructive",
-        });
+        toast("Failed to update the activity record");
         return;
       }
 
@@ -194,18 +151,10 @@ export const useActivityForm = (
       });
 
       await onSave(updatedRecords);
-      
-      toast({
-        title: "Success",
-        description: "Activity record updated successfully",
-      });
+      toast("Activity record updated successfully");
     } catch (error) {
-      console.error('Error editing record:', error);
-      toast({
-        title: "Error",
-        description: "Failed to edit activity record",
-        variant: "destructive",
-      });
+      console.error('Error in handleEditRecord:', error);
+      toast("Failed to edit activity record");
     }
   };
 
@@ -214,11 +163,7 @@ export const useActivityForm = (
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError || !session) {
-        toast({
-          title: "Authentication Error",
-          description: "Please sign in to record activities.",
-          variant: "destructive",
-        });
+        toast("Authentication Error: Please sign in to record activities.");
         return;
       }
 
@@ -240,7 +185,7 @@ export const useActivityForm = (
           continue;
         }
 
-        const formattedDate = format(filterState.selectedDate, "yyyy-MM-dd'T'HH:mm:ssxxx");
+        const formattedDate = format(filterState.selectedDate, 'yyyy-MM-dd');
 
         for (const memberName of memberNames) {
           const familyMember = familyMembers.find(m => m.name === memberName);
@@ -271,18 +216,14 @@ export const useActivityForm = (
           newRecords.push({
             taskId,
             completed: true,
-            date: format(filterState.selectedDate, 'yyyy-MM-dd'),
+            date: formattedDate,
             completedBy: memberName,
           });
         }
       }
 
       if (errors.length > 0) {
-        toast({
-          title: "Some records failed to save",
-          description: errors.join('\n'),
-          variant: "destructive",
-        });
+        toast("Some records failed to save: " + errors.join(', '));
         return;
       }
 
@@ -290,17 +231,10 @@ export const useActivityForm = (
       setCompletedTasks(new Set());
       setCompletedBy({});
       
-      toast({
-        title: "Success",
-        description: "Activities recorded successfully",
-      });
+      toast("Activities recorded successfully");
     } catch (error) {
       console.error('Error saving records:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save activities. Please try again.",
-        variant: "destructive",
-      });
+      toast("Failed to save activities. Please try again.");
     }
   };
 
