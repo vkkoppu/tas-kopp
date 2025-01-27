@@ -64,7 +64,7 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
   if (!familyData) {
     console.log("Dashboard - No family data available, showing family setup form");
     return (
-      <div className="p-6">
+      <div className="p-6 bg-pastel-purple/10 min-h-screen">
         <Navigation />
         <FamilyDetailsForm onSubmit={handleFamilySubmit} />
       </div>
@@ -72,18 +72,29 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
   }
 
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-b from-pastel-purple/20 to-pastel-blue/20">
       <Navigation />
       <div className="p-6 max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Family Dashboard</h1>
+        <h1 className="text-3xl font-bold mb-6 text-purple-primary">Family Dashboard</h1>
         <div className="flex flex-wrap gap-4 mb-8">
-          <Button onClick={() => handleAddTask(!!familyData)} variant="default">
+          <Button 
+            onClick={() => handleAddTask(!!familyData)} 
+            className="bg-purple-primary hover:bg-purple-secondary text-white"
+          >
             Add Task
           </Button>
-          <Button onClick={handleRecordActivities} variant="secondary">
+          <Button 
+            onClick={handleRecordActivities} 
+            variant="secondary"
+            className="bg-pastel-purple hover:bg-purple-soft text-purple-primary"
+          >
             Record Activities
           </Button>
-          <Button onClick={handleShowHistory} variant="secondary">
+          <Button 
+            onClick={handleShowHistory} 
+            variant="secondary"
+            className="bg-pastel-purple hover:bg-purple-soft text-purple-primary"
+          >
             View History
           </Button>
         </div>
