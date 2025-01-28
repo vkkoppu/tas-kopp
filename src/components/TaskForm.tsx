@@ -39,14 +39,31 @@ export const TaskForm = ({
   setTasks,
   editingTask 
 }: TaskFormProps) => {
-  const [title, setTitle] = useState(initialValues?.title ?? "");
-  const [priority, setPriority] = useState<"low" | "medium" | "high">(initialValues?.priority ?? "medium");
-  const [frequency, setFrequency] = useState<"once" | "daily" | "weekly" | "custom">(initialValues?.frequency ?? "once");
-  const [customDays, setCustomDays] = useState<number | undefined>(initialValues?.customDays);
-  const [dueDate, setDueDate] = useState<Date | undefined>(initialValues?.dueDate ? new Date(initialValues.dueDate) : undefined);
-  const [startDate, setStartDate] = useState<Date | undefined>(initialValues?.startDate ? new Date(initialValues.startDate) : undefined);
-  const [endDate, setEndDate] = useState<Date | undefined>(initialValues?.endDate ? new Date(initialValues.endDate) : undefined);
-  const [assignedTo, setAssignedTo] = useState<string[]>(initialValues?.assignedTo ?? []);
+  const [title, setTitle] = useState(editingTask?.title || initialValues?.title || "");
+  const [priority, setPriority] = useState<"low" | "medium" | "high">(
+    editingTask?.priority || initialValues?.priority || "medium"
+  );
+  const [frequency, setFrequency] = useState<"once" | "daily" | "weekly" | "custom">(
+    editingTask?.frequency || initialValues?.frequency || "once"
+  );
+  const [customDays, setCustomDays] = useState<number | undefined>(
+    editingTask?.customDays || initialValues?.customDays
+  );
+  const [dueDate, setDueDate] = useState<Date | undefined>(
+    editingTask?.dueDate ? new Date(editingTask.dueDate) : 
+    initialValues?.dueDate ? new Date(initialValues.dueDate) : undefined
+  );
+  const [startDate, setStartDate] = useState<Date | undefined>(
+    editingTask?.startDate ? new Date(editingTask.startDate) : 
+    initialValues?.startDate ? new Date(initialValues.startDate) : undefined
+  );
+  const [endDate, setEndDate] = useState<Date | undefined>(
+    editingTask?.endDate ? new Date(editingTask.endDate) : 
+    initialValues?.endDate ? new Date(initialValues.endDate) : undefined
+  );
+  const [assignedTo, setAssignedTo] = useState<string[]>(
+    editingTask?.assignedTo || initialValues?.assignedTo || []
+  );
 
   const isFormValid = () => {
     if (!title.trim()) return false;

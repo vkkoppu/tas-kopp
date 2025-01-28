@@ -39,19 +39,23 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
   console.log("Dashboard - Received familyData:", familyData);
   console.log("Dashboard - Received tasks:", tasks);
 
+  const closeAllModals = () => {
+    setShowHistory(false);
+    setShowActivityRecorder(false);
+    setShowTaskForm(false);
+  };
+
   const handleRecordActivities = () => {
     if (!familyData) {
       console.error("No family data available");
       return;
     }
-    setShowHistory(false);
-    setShowTaskForm(false);
+    closeAllModals();
     setShowActivityRecorder(true);
   };
 
   const handleShowHistory = () => {
-    setShowActivityRecorder(false);
-    setShowTaskForm(false);
+    closeAllModals();
     handleViewHistory(!!familyData);
   };
 
@@ -77,8 +81,7 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
         <div className="flex flex-wrap gap-4 mb-8">
           <Button 
             onClick={() => {
-              setShowHistory(false);
-              setShowActivityRecorder(false);
+              closeAllModals();
               handleAddTask(!!familyData);
             }} 
             className="bg-purple-primary hover:bg-purple-secondary text-white"
