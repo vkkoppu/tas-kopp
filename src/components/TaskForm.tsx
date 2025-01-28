@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FrequencySelector } from "./task-form/FrequencySelector";
 import { DateSelector } from "./task-form/DateSelector";
@@ -39,31 +39,38 @@ export const TaskForm = ({
   setTasks,
   editingTask 
 }: TaskFormProps) => {
-  const [title, setTitle] = useState(editingTask?.title || initialValues?.title || "");
-  const [priority, setPriority] = useState<"low" | "medium" | "high">(
-    editingTask?.priority || initialValues?.priority || "medium"
-  );
-  const [frequency, setFrequency] = useState<"once" | "daily" | "weekly" | "custom">(
-    editingTask?.frequency || initialValues?.frequency || "once"
-  );
-  const [customDays, setCustomDays] = useState<number | undefined>(
-    editingTask?.customDays || initialValues?.customDays
-  );
-  const [dueDate, setDueDate] = useState<Date | undefined>(
-    editingTask?.dueDate ? new Date(editingTask.dueDate) : 
-    initialValues?.dueDate ? new Date(initialValues.dueDate) : undefined
-  );
-  const [startDate, setStartDate] = useState<Date | undefined>(
-    editingTask?.startDate ? new Date(editingTask.startDate) : 
-    initialValues?.startDate ? new Date(initialValues.startDate) : undefined
-  );
-  const [endDate, setEndDate] = useState<Date | undefined>(
-    editingTask?.endDate ? new Date(editingTask.endDate) : 
-    initialValues?.endDate ? new Date(initialValues.endDate) : undefined
-  );
-  const [assignedTo, setAssignedTo] = useState<string[]>(
-    editingTask?.assignedTo || initialValues?.assignedTo || []
-  );
+  console.log("TaskForm - Editing task:", editingTask);
+
+  const [title, setTitle] = useState("");
+  const [priority, setPriority] = useState<"low" | "medium" | "high">("medium");
+  const [frequency, setFrequency] = useState<"once" | "daily" | "weekly" | "custom">("once");
+  const [customDays, setCustomDays] = useState<number | undefined>();
+  const [dueDate, setDueDate] = useState<Date | undefined>();
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
+  const [assignedTo, setAssignedTo] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (editingTask) {
+      setTitle(editingTask.title);
+      setPriority(editingTask.priority);
+      setFrequency(editingTask.frequency);
+      setCustomDays(editingTask.customDays);
+      setDueDate(editingTask.dueDate ? new Date(editingTask.dueDate) : undefined);
+      setStartDate(editingTask.startDate ? new Date(editingTask.startDate) : undefined);
+      setEndDate(editingTask.endDate ? new Date(editingTask.endDate) : undefined);
+      setAssignedTo(editingTask.assignedTo);
+    } else if (initialValues) {
+      setTitle(initialValues.title);
+      setPriority(initialValues.priority);
+      setFrequency(initialValues.frequency);
+      setCustomDays(initialValues.customDays);
+      setDueDate(initialValues.dueDate ? new Date(initialValues.dueDate) : undefined);
+      setStartDate(initialValues.startDate ? new Date(initialValues.startDate) : undefined);
+      setEndDate(initialValues.endDate ? new Date(initialValues.endDate) : undefined);
+      setAssignedTo(initialValues.assignedTo);
+    }
+  }, [editingTask, initialValues]);
 
   const isFormValid = () => {
     if (!title.trim()) return false;
@@ -92,8 +99,8 @@ export const TaskForm = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-card rounded-lg shadow-lg w-full max-w-md relative">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-md relative">
         <ScrollArea className="h-[80vh]">
           <div className="p-6 space-y-6">
             <div>
