@@ -131,8 +131,8 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
         )}
 
         {showHistory && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50">
-            <div className="fixed inset-4 bg-white rounded-lg shadow-lg overflow-hidden md:inset-auto md:left-1/2 md:top-1/2 md:max-w-2xl md:-translate-x-1/2 md:-translate-y-1/2 md:h-[80vh]">
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+            <div className="relative w-full max-w-2xl h-[80vh] bg-white rounded-lg shadow-xl overflow-hidden">
               <TaskHistory
                 records={taskRecords}
                 tasks={tasks}
