@@ -29,6 +29,33 @@ export const TaskManager = ({
     handleSubmit,
   } = useTaskOperations(tasks, setTasks, familyId);
 
+  const handleEditTask = (task: Task) => {
+    console.log("Editing task:", task);
+    setEditingTask(task);
+    setShowTaskForm(true);
+  };
+
+  const handleDeleteTask = async (task: Task) => {
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', task.id);
+
+      if (error) {
+        console.error('Error deleting task:', error);
+        toast.error("Failed to delete task");
+        return;
+      }
+
+      setTasks(tasks.filter(t => t.id !== task.id));
+      toast.success("Task deleted successfully");
+    } catch (error) {
+      console.error('Error in handleDeleteTask:', error);
+      toast.error("Failed to delete task");
+    }
+  };
+
   return (
     <div className="relative">
       {showTaskForm && (
@@ -48,30 +75,8 @@ export const TaskManager = ({
 
       <TaskGroups
         groupedTasks={tasks}
-        onEditTask={(task) => {
-          setEditingTask(task);
-          setShowTaskForm(true);
-        }}
-        onDeleteTask={async (task) => {
-          try {
-            const { error } = await supabase
-              .from('tasks')
-              .delete()
-              .eq('id', task.id);
-
-            if (error) {
-              console.error('Error deleting task:', error);
-              toast.error("Failed to delete task");
-              return;
-            }
-
-            setTasks(tasks.filter(t => t.id !== task.id));
-            toast.success("Task deleted successfully");
-          } catch (error) {
-            console.error('Error in handleDeleteTask:', error);
-            toast.error("Failed to delete task");
-          }
-        }}
+        onEditTask={handleEditTask}
+        onDeleteTask={handleDeleteTask}
       />
     </div>
   );

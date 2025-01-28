@@ -44,16 +44,14 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
       console.error("No family data available");
       return;
     }
-    if (showHistory) {
-      setShowHistory(false);
-    }
+    setShowHistory(false);
+    setShowTaskForm(false);
     setShowActivityRecorder(true);
   };
 
   const handleShowHistory = () => {
-    if (showActivityRecorder) {
-      setShowActivityRecorder(false);
-    }
+    setShowActivityRecorder(false);
+    setShowTaskForm(false);
     handleViewHistory(!!familyData);
   };
 
@@ -78,7 +76,11 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
         <h1 className="text-3xl font-bold mb-6 text-purple-primary">Family Dashboard</h1>
         <div className="flex flex-wrap gap-4 mb-8">
           <Button 
-            onClick={() => handleAddTask(!!familyData)} 
+            onClick={() => {
+              setShowHistory(false);
+              setShowActivityRecorder(false);
+              handleAddTask(!!familyData);
+            }} 
             className="bg-purple-primary hover:bg-purple-secondary text-white"
           >
             Add Task
