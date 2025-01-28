@@ -108,18 +108,16 @@ export const TaskHistory = ({ records, tasks, onClose, familyMembers }: TaskHist
   );
 
   return (
-    <Card className="fixed inset-4 z-40 flex flex-col bg-pastel-purple/20 md:inset-auto md:left-1/2 md:top-1/2 md:max-w-2xl md:-translate-x-1/2 md:-translate-y-1/2 md:h-[80vh] rounded-lg shadow-lg border border-purple-soft">
-      <div className="flex items-center justify-between p-4 border-b border-purple-soft/30">
-        <div className="flex items-center gap-2">
-          <h2 className="text-2xl font-bold text-purple-primary">Activity History</h2>
-        </div>
+    <div className="h-full flex flex-col bg-white">
+      <div className="flex items-center justify-between p-4 border-b">
+        <h2 className="text-2xl font-bold text-purple-primary">Activity History</h2>
         <Button 
           variant="ghost" 
           size="icon" 
           onClick={onClose}
-          className="hover:bg-pastel-purple/50"
+          className="hover:bg-purple-soft/20"
         >
-          <X className="h-4 w-4 text-purple-primary" />
+          <X className="h-4 w-4" />
         </Button>
       </div>
       
@@ -128,16 +126,16 @@ export const TaskHistory = ({ records, tasks, onClose, familyMembers }: TaskHist
           <div className="space-y-6">
             {sortedDates.map((date) => (
               <div key={date} className="space-y-4">
-                <h3 className="text-lg font-semibold sticky top-0 bg-pastel-purple/20 py-2 text-purple-secondary">
+                <h3 className="text-lg font-semibold sticky top-0 bg-white py-2 text-purple-secondary z-10">
                   {format(parseISO(date), 'PPPP')}
                 </h3>
                 <div className="space-y-4">
                   {groupedRecords[date].map((record, index) => {
                     const taskTitle = getTaskTitle(record.taskId);
-                    if (!taskTitle) return null; // Skip rendering if task not found
+                    if (!taskTitle) return null;
 
                     return (
-                      <div key={index} className="flex items-center justify-between py-2 px-4 border-b last:border-0 bg-pastel-purple/10 rounded-lg hover:bg-pastel-purple/20 transition-colors">
+                      <div key={index} className="flex items-center justify-between py-2 px-4 bg-pastel-purple/10 rounded-lg hover:bg-pastel-purple/20 transition-colors">
                         <div className="space-y-1">
                           <div className="font-medium text-purple-primary">{taskTitle}</div>
                           {editingRecord?.taskId === record.taskId && editingRecord?.date === record.date ? (
@@ -183,6 +181,6 @@ export const TaskHistory = ({ records, tasks, onClose, familyMembers }: TaskHist
           </p>
         )}
       </ScrollArea>
-    </Card>
+    </div>
   );
 };

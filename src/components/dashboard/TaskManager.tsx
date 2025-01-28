@@ -13,7 +13,7 @@ interface TaskManagerProps {
   familyId: string;
   showTaskForm: boolean;
   setShowTaskForm: (show: boolean) => void;
-  editingTask?: Task | null;
+  editingTask: Task | null;
 }
 
 export const TaskManager = ({
@@ -29,8 +29,9 @@ export const TaskManager = ({
     handleSubmit,
   } = useTaskOperations(tasks, setTasks, familyId);
 
-  const handleEditTask = (task: Task) => {
+  const handleEditTask = async (task: Task) => {
     console.log("Editing task in TaskManager:", task);
+    // This function is called when edit button is clicked in TaskCard
   };
 
   const handleDeleteTask = async (task: Task) => {
