@@ -34,6 +34,10 @@ const App = () => {
             console.log('No refresh token found, user needs to login');
             setUser(null);
             toast.error("Session expired. Please login again.");
+          } else if (error.message.includes('invalid_credentials')) {
+            console.error('Invalid credentials:', error.message);
+            toast.error("Invalid email or password. Please try again.");
+            setUser(null);
           } else {
             console.error('Auth error:', error.message);
             toast.error(`Authentication error: ${error.message}`);
