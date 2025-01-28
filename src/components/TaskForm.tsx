@@ -41,17 +41,18 @@ export const TaskForm = ({
 }: TaskFormProps) => {
   console.log("TaskForm - Editing task:", editingTask);
 
-  const [title, setTitle] = useState("");
-  const [priority, setPriority] = useState<"low" | "medium" | "high">("medium");
-  const [frequency, setFrequency] = useState<"once" | "daily" | "weekly" | "custom">("once");
-  const [customDays, setCustomDays] = useState<number | undefined>();
-  const [dueDate, setDueDate] = useState<Date | undefined>();
-  const [startDate, setStartDate] = useState<Date | undefined>();
-  const [endDate, setEndDate] = useState<Date | undefined>();
-  const [assignedTo, setAssignedTo] = useState<string[]>([]);
+  const [title, setTitle] = useState(editingTask?.title || "");
+  const [priority, setPriority] = useState<"low" | "medium" | "high">(editingTask?.priority || "medium");
+  const [frequency, setFrequency] = useState<"once" | "daily" | "weekly" | "custom">(editingTask?.frequency || "once");
+  const [customDays, setCustomDays] = useState<number | undefined>(editingTask?.customDays);
+  const [dueDate, setDueDate] = useState<Date | undefined>(editingTask?.dueDate ? new Date(editingTask.dueDate) : undefined);
+  const [startDate, setStartDate] = useState<Date | undefined>(editingTask?.startDate ? new Date(editingTask.startDate) : undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(editingTask?.endDate ? new Date(editingTask.endDate) : undefined);
+  const [assignedTo, setAssignedTo] = useState<string[]>(editingTask?.assignedTo || []);
 
   useEffect(() => {
     if (editingTask) {
+      console.log("Setting form values for editing task:", editingTask);
       setTitle(editingTask.title);
       setPriority(editingTask.priority);
       setFrequency(editingTask.frequency);
@@ -60,17 +61,8 @@ export const TaskForm = ({
       setStartDate(editingTask.startDate ? new Date(editingTask.startDate) : undefined);
       setEndDate(editingTask.endDate ? new Date(editingTask.endDate) : undefined);
       setAssignedTo(editingTask.assignedTo);
-    } else if (initialValues) {
-      setTitle(initialValues.title);
-      setPriority(initialValues.priority);
-      setFrequency(initialValues.frequency);
-      setCustomDays(initialValues.customDays);
-      setDueDate(initialValues.dueDate ? new Date(initialValues.dueDate) : undefined);
-      setStartDate(initialValues.startDate ? new Date(initialValues.startDate) : undefined);
-      setEndDate(initialValues.endDate ? new Date(initialValues.endDate) : undefined);
-      setAssignedTo(initialValues.assignedTo);
     }
-  }, [editingTask, initialValues]);
+  }, [editingTask]);
 
   const isFormValid = () => {
     if (!title.trim()) return false;

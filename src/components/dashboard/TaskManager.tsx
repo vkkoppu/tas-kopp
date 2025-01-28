@@ -13,6 +13,7 @@ interface TaskManagerProps {
   familyId: string;
   showTaskForm: boolean;
   setShowTaskForm: (show: boolean) => void;
+  editingTask?: Task | null;
 }
 
 export const TaskManager = ({
@@ -22,17 +23,14 @@ export const TaskManager = ({
   familyId,
   showTaskForm,
   setShowTaskForm,
+  editingTask,
 }: TaskManagerProps) => {
   const {
-    editingTask,
-    setEditingTask,
     handleSubmit,
   } = useTaskOperations(tasks, setTasks, familyId);
 
   const handleEditTask = (task: Task) => {
-    console.log("Editing task:", task);
-    setEditingTask(task);
-    setShowTaskForm(true);
+    console.log("Editing task in TaskManager:", task);
   };
 
   const handleDeleteTask = async (task: Task) => {
@@ -62,14 +60,12 @@ export const TaskManager = ({
         <TaskForm
           onCancel={() => {
             setShowTaskForm(false);
-            setEditingTask(null);
           }}
           onSubmit={handleSubmit}
           editingTask={editingTask}
           tasks={tasks}
           setTasks={setTasks}
           familyMembers={familyMembers}
-          initialValues={editingTask || undefined}
         />
       )}
 

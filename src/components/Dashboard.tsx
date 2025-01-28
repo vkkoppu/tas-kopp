@@ -9,6 +9,7 @@ import { FamilyDetailsForm } from "@/components/FamilyDetailsForm";
 import { useActivityRecording } from "@/hooks/dashboard/useActivityRecording";
 import { useHistoryView } from "@/hooks/dashboard/useHistoryView";
 import { useTaskManagement } from "@/hooks/dashboard/useTaskManagement";
+import { useState } from "react";
 
 interface DashboardProps {
   familyData: FamilyData | null;
@@ -17,6 +18,8 @@ interface DashboardProps {
 }
 
 export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  
   const {
     showTaskForm,
     setShowTaskForm,
@@ -36,13 +39,11 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
     handleViewHistory
   } = useHistoryView();
 
-  console.log("Dashboard - Received familyData:", familyData);
-  console.log("Dashboard - Received tasks:", tasks);
-
   const closeAllModals = () => {
     setShowHistory(false);
     setShowActivityRecorder(false);
     setShowTaskForm(false);
+    setEditingTask(null);
   };
 
   const handleRecordActivities = () => {
@@ -59,12 +60,17 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
     handleViewHistory(!!familyData);
   };
 
+  const handleEditTask = (task: Task) => {
+    console.log("Setting editing task:", task);
+    setEditingTask(task);
+    setShowTaskForm(true);
+  };
+
   const handleFamilySubmit = () => {
     window.location.reload();
   };
 
   if (!familyData) {
-    console.log("Dashboard - No family data available, showing family setup form");
     return (
       <div className="p-6 bg-pastel-purple/10 min-h-screen">
         <Navigation />
@@ -104,27 +110,15 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
           </Button>
         </div>
 
-        {showTaskForm && (
-          <TaskManager
-            tasks={tasks}
-            setTasks={setTasks}
-            familyMembers={familyData.members}
-            familyId={familyData.id || ""}
-            showTaskForm={showTaskForm}
-            setShowTaskForm={setShowTaskForm}
-          />
-        )}
-
-        {!showTaskForm && tasks.length > 0 && (
-          <TaskManager
-            tasks={tasks}
-            setTasks={setTasks}
-            familyMembers={familyData.members}
-            familyId={familyData.id || ""}
-            showTaskForm={showTaskForm}
-            setShowTaskForm={setShowTaskForm}
-          />
-        )}
+        <TaskManager
+          tasks={tasks}
+          setTasks={setTasks}
+          familyMembers={familyData.members}
+          familyId={familyData.id || ""}
+          showTaskForm={showTaskForm}
+          setShowTaskForm={setShowTaskForm}
+          editingTask={editingTask}
+        />
 
         {showActivityRecorder && (
           <ActivityRecorder
@@ -137,12 +131,16 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
         )}
 
         {showHistory && (
-          <TaskHistory
-            records={taskRecords}
-            tasks={tasks}
-            onClose={() => setShowHistory(false)}
-            familyMembers={familyData.members}
-          />
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50">
+            <div className="fixed inset-4 bg-white rounded-lg shadow-lg overflow-hidden md:inset-auto md:left-1/2 md:top-1/2 md:max-w-2xl md:-translate-x-1/2 md:-translate-y-1/2 md:h-[80vh]">
+              <TaskHistory
+                records={taskRecords}
+                tasks={tasks}
+                onClose={() => setShowHistory(false)}
+                familyMembers={familyData.members}
+              />
+            </div>
+          </div>
         )}
       </div>
     </div>
