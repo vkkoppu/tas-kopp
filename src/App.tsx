@@ -33,6 +33,7 @@ const App = () => {
           if (error.message.includes('refresh_token_not_found')) {
             console.log('No refresh token found, user needs to login');
             setUser(null);
+            toast.error("Session expired. Please login again.");
           } else {
             console.error('Auth error:', error.message);
             toast.error(`Authentication error: ${error.message}`);
