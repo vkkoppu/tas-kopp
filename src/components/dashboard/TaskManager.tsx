@@ -5,7 +5,17 @@ import { FamilyMember } from "@/types/family";
 import { useTaskOperations } from "@/hooks/tasks/useTaskOperations";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useState } from "react";
 
 interface TaskManagerProps {
   tasks: Task[];
@@ -28,6 +38,9 @@ export const TaskManager = ({
   editingTask,
   setEditingTask,
 }: TaskManagerProps) => {
+  const [showEditAlert, setShowEditAlert] = useState(false);
+  const [pendingEditTask, setPendingEditTask] = useState<Task | null>(null);
+
   const handleSubmit = async (taskData: {
     title: string;
     priority: "low" | "medium" | "high";
@@ -172,12 +185,10 @@ export const TaskManager = ({
         }
 
         // Create assignments one by one
-        let assignmentSuccess = true;
         for (const memberName of taskData.assignedTo) {
           const member = familyMembersData.find(m => m.name === memberName);
           if (!member) {
             console.error('Family member not found:', memberName);
-            assignmentSuccess = false;
             break;
           }
 
@@ -203,16 +214,8 @@ export const TaskManager = ({
 
           if (assignmentError) {
             console.error('Error creating task assignment:', assignmentError);
-            assignmentSuccess = false;
-            break;
+            continue;
           }
-        }
-
-        if (!assignmentSuccess) {
-          // Clean up the task if any assignment failed
-          await supabase.from('tasks').delete().eq('id', newTask.id);
-          toast.error("Failed to assign task to family members");
-          return;
         }
 
         const formattedTask: Task = {
@@ -239,30 +242,25 @@ export const TaskManager = ({
     }
   };
 
-  const handleEditTask = (task: Task) => {
-    console.log("Editing task in TaskManager:", task);
-    setEditingTask(task);
-    setShowTaskForm(true);
-  };
+  const handleEditTask = async (task: Task) => {
+    // Check if task has any completed records
+    const { data: records, error } = await supabase
+      .from('task_records')
+      .select('*')
+      .eq('task_id', task.id);
 
-  const handleDeleteTask = async (task: Task) => {
-    try {
-      const { error } = await supabase
-        .from('tasks')
-        .delete()
-        .eq('id', task.id);
+    if (error) {
+      console.error('Error checking task records:', error);
+      toast.error("Failed to check task completion status");
+      return;
+    }
 
-      if (error) {
-        console.error('Error deleting task:', error);
-        toast.error("Failed to delete task");
-        return;
-      }
-
-      setTasks(tasks.filter(t => t.id !== task.id));
-      toast.success("Task deleted successfully");
-    } catch (error) {
-      console.error('Error in handleDeleteTask:', error);
-      toast.error("Failed to delete task");
+    if (records && records.length > 0) {
+      setPendingEditTask(task);
+      setShowEditAlert(true);
+    } else {
+      setEditingTask(task);
+      setShowTaskForm(true);
     }
   };
 
@@ -281,6 +279,35 @@ export const TaskManager = ({
           familyMembers={familyMembers}
         />
       )}
+
+      <AlertDialog open={showEditAlert} onOpenChange={setShowEditAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Edit Task with Completion History</AlertDialogTitle>
+            <AlertDialogDescription>
+              This task has already been completed one or more times. Editing it might affect historical records and analytics. Are you sure you want to continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setShowEditAlert(false);
+              setPendingEditTask(null);
+            }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              setShowEditAlert(false);
+              if (pendingEditTask) {
+                setEditingTask(pendingEditTask);
+                setShowTaskForm(true);
+                setPendingEditTask(null);
+              }
+            }}>
+              Continue Editing
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <TaskGroups
         groupedTasks={tasks}
