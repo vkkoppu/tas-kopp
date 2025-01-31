@@ -5,6 +5,7 @@ import { FamilyMember } from "@/types/family";
 import { useTaskOperations } from "@/hooks/tasks/useTaskOperations";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { format } from "date-fns";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -189,7 +190,7 @@ export const TaskManager = ({
           const member = familyMembersData.find(m => m.name === memberName);
           if (!member) {
             console.error('Family member not found:', memberName);
-            break;
+            continue;
           }
 
           // Check if assignment already exists
@@ -261,6 +262,27 @@ export const TaskManager = ({
     } else {
       setEditingTask(task);
       setShowTaskForm(true);
+    }
+  };
+
+  const handleDeleteTask = async (task: Task) => {
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', task.id);
+
+      if (error) {
+        console.error('Error deleting task:', error);
+        toast.error("Failed to delete task");
+        return;
+      }
+
+      setTasks(tasks.filter(t => t.id !== task.id));
+      toast.success("Task deleted successfully");
+    } catch (error) {
+      console.error('Error in handleDeleteTask:', error);
+      toast.error("Failed to delete task");
     }
   };
 
