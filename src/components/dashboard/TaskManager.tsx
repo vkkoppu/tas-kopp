@@ -51,19 +51,6 @@ export const TaskManager = ({
         return;
       }
 
-      // Map assigned names to member IDs and filter out any invalid assignments
-      const validAssignments = taskData.assignedTo
-        .map(memberName => {
-          const member = familyMembersData.find(m => m.name === memberName);
-          return member ? member.id : null;
-        })
-        .filter((id): id is string => id !== null);
-
-      if (validAssignments.length === 0) {
-        toast.error("No valid family members selected for assignment");
-        return;
-      }
-
       if (editingTask) {
         // Update existing task
         const { error: taskError } = await supabase
@@ -97,24 +84,30 @@ export const TaskManager = ({
           return;
         }
 
-        // Create new assignments one by one to avoid duplicates
-        for (const memberId of validAssignments) {
+        // Create new assignments one by one
+        for (const memberName of taskData.assignedTo) {
+          const member = familyMembersData.find(m => m.name === memberName);
+          if (!member) {
+            console.error('Family member not found:', memberName);
+            continue;
+          }
+
           const { error: assignmentError } = await supabase
             .from('task_assignments')
             .insert({
               task_id: editingTask.id,
-              family_member_id: memberId,
+              family_member_id: member.id,
             });
 
           if (assignmentError) {
             console.error('Error creating task assignment:', assignmentError);
-            continue; // Continue with other assignments if one fails
+            continue;
           }
         }
 
         // Update local state
-        const updatedTasks = tasks.map(task => 
-          task.id === editingTask.id 
+        const updatedTasks = tasks.map(task =>
+          task.id === editingTask.id
             ? {
                 ...task,
                 title: taskData.title,
@@ -154,14 +147,21 @@ export const TaskManager = ({
           return;
         }
 
-        // Create new assignments one by one to avoid duplicates
+        // Create assignments one by one
         let assignmentSuccess = true;
-        for (const memberId of validAssignments) {
+        for (const memberName of taskData.assignedTo) {
+          const member = familyMembersData.find(m => m.name === memberName);
+          if (!member) {
+            console.error('Family member not found:', memberName);
+            assignmentSuccess = false;
+            break;
+          }
+
           const { error: assignmentError } = await supabase
             .from('task_assignments')
             .insert({
               task_id: newTask.id,
-              family_member_id: memberId,
+              family_member_id: member.id,
             });
 
           if (assignmentError) {
