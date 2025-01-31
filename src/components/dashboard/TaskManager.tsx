@@ -39,6 +39,31 @@ export const TaskManager = ({
     assignedTo: string[];
   }) => {
     try {
+      // Get family members to map names to IDs
+      const { data: familyMembersData, error: membersError } = await supabase
+        .from('family_members')
+        .select('id, name')
+        .eq('family_id', familyId);
+
+      if (membersError || !familyMembersData) {
+        console.error('Error fetching family members:', membersError);
+        toast.error("Failed to fetch family members");
+        return;
+      }
+
+      // Map assigned names to member IDs and filter out any invalid assignments
+      const validAssignments = taskData.assignedTo
+        .map(memberName => {
+          const member = familyMembersData.find(m => m.name === memberName);
+          return member ? member.id : null;
+        })
+        .filter((id): id is string => id !== null);
+
+      if (validAssignments.length === 0) {
+        toast.error("No valid family members selected for assignment");
+        return;
+      }
+
       if (editingTask) {
         // Update existing task
         const { error: taskError } = await supabase
@@ -60,19 +85,7 @@ export const TaskManager = ({
           return;
         }
 
-        // Get family members to map names to IDs
-        const { data: familyMembersData, error: membersError } = await supabase
-          .from('family_members')
-          .select('id, name')
-          .eq('family_id', familyId);
-
-        if (membersError || !familyMembersData) {
-          console.error('Error fetching family members:', membersError);
-          toast.error("Failed to fetch family members");
-          return;
-        }
-
-        // Delete existing assignments first
+        // Delete all existing assignments for this task
         const { error: deleteError } = await supabase
           .from('task_assignments')
           .delete()
@@ -84,28 +97,18 @@ export const TaskManager = ({
           return;
         }
 
-        // Create new assignments
-        const assignments = taskData.assignedTo.map(memberName => {
-          const member = familyMembersData.find(m => m.name === memberName);
-          if (!member) {
-            console.error('Family member not found:', memberName);
-            return null;
-          }
-          return {
-            task_id: editingTask.id,
-            family_member_id: member.id,
-          };
-        }).filter(Boolean);
-
-        if (assignments.length > 0) {
+        // Create new assignments one by one to avoid duplicates
+        for (const memberId of validAssignments) {
           const { error: assignmentError } = await supabase
             .from('task_assignments')
-            .insert(assignments);
+            .insert({
+              task_id: editingTask.id,
+              family_member_id: memberId,
+            });
 
           if (assignmentError) {
-            console.error('Error creating task assignments:', assignmentError);
-            toast.error("Failed to assign task to family members");
-            return;
+            console.error('Error creating task assignment:', assignmentError);
+            continue; // Continue with other assignments if one fails
           }
         }
 
@@ -129,7 +132,7 @@ export const TaskManager = ({
         setTasks(updatedTasks);
         toast.success("Task updated successfully");
       } else {
-        // Handle new task creation
+        // Create new task
         const { data: newTask, error: taskError } = await supabase
           .from('tasks')
           .insert({
@@ -151,43 +154,28 @@ export const TaskManager = ({
           return;
         }
 
-        // Get family members to map names to IDs
-        const { data: familyMembersData, error: membersError } = await supabase
-          .from('family_members')
-          .select('id, name')
-          .eq('family_id', familyId);
-
-        if (membersError || !familyMembersData) {
-          console.error('Error fetching family members:', membersError);
-          toast.error("Failed to fetch family members");
-          return;
-        }
-
-        // Create assignments
-        const assignments = taskData.assignedTo.map(memberName => {
-          const member = familyMembersData.find(m => m.name === memberName);
-          if (!member) {
-            console.error('Family member not found:', memberName);
-            return null;
-          }
-          return {
-            task_id: newTask.id,
-            family_member_id: member.id,
-          };
-        }).filter(Boolean);
-
-        if (assignments.length > 0) {
+        // Create new assignments one by one to avoid duplicates
+        let assignmentSuccess = true;
+        for (const memberId of validAssignments) {
           const { error: assignmentError } = await supabase
             .from('task_assignments')
-            .insert(assignments);
+            .insert({
+              task_id: newTask.id,
+              family_member_id: memberId,
+            });
 
           if (assignmentError) {
-            console.error('Error creating task assignments:', assignmentError);
-            // Clean up the task if assignments fail
-            await supabase.from('tasks').delete().eq('id', newTask.id);
-            toast.error("Failed to assign task to family members");
-            return;
+            console.error('Error creating task assignment:', assignmentError);
+            assignmentSuccess = false;
+            break;
           }
+        }
+
+        if (!assignmentSuccess) {
+          // Clean up the task if any assignment failed
+          await supabase.from('tasks').delete().eq('id', newTask.id);
+          toast.error("Failed to assign task to family members");
+          return;
         }
 
         const formattedTask: Task = {
