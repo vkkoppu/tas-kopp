@@ -14,6 +14,7 @@ interface TaskManagerProps {
   showTaskForm: boolean;
   setShowTaskForm: (show: boolean) => void;
   editingTask: Task | null;
+  setEditingTask: (task: Task | null) => void;
 }
 
 export const TaskManager = ({
@@ -24,6 +25,7 @@ export const TaskManager = ({
   showTaskForm,
   setShowTaskForm,
   editingTask,
+  setEditingTask,
 }: TaskManagerProps) => {
   const {
     handleSubmit,
@@ -31,7 +33,8 @@ export const TaskManager = ({
 
   const handleEditTask = async (task: Task) => {
     console.log("Editing task in TaskManager:", task);
-    // This function is called when edit button is clicked in TaskCard
+    setEditingTask(task);
+    setShowTaskForm(true);
   };
 
   const handleDeleteTask = async (task: Task) => {
@@ -61,6 +64,7 @@ export const TaskManager = ({
         <TaskForm
           onCancel={() => {
             setShowTaskForm(false);
+            setEditingTask(null);
           }}
           onSubmit={handleSubmit}
           editingTask={editingTask}
