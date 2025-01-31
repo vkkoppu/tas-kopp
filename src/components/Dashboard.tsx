@@ -60,21 +60,11 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
     handleViewHistory(!!familyData);
   };
 
-  const handleEditTask = (task: Task) => {
-    console.log("Setting editing task:", task);
-    setEditingTask(task);
-    setShowTaskForm(true);
-  };
-
-  const handleFamilySubmit = () => {
-    window.location.reload();
-  };
-
   if (!familyData) {
     return (
       <div className="p-6 bg-pastel-purple/10 min-h-screen">
         <Navigation />
-        <FamilyDetailsForm onSubmit={handleFamilySubmit} />
+        <FamilyDetailsForm onSubmit={() => window.location.reload()} />
       </div>
     );
   }
@@ -118,6 +108,7 @@ export const Dashboard = ({ familyData, tasks, setTasks }: DashboardProps) => {
           showTaskForm={showTaskForm}
           setShowTaskForm={setShowTaskForm}
           editingTask={editingTask}
+          setEditingTask={setEditingTask}
         />
 
         {showActivityRecorder && (
