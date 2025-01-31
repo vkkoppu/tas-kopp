@@ -60,18 +60,6 @@ export const TaskManager = ({
           return;
         }
 
-        // Delete existing assignments
-        const { error: deleteError } = await supabase
-          .from('task_assignments')
-          .delete()
-          .eq('task_id', editingTask.id);
-
-        if (deleteError) {
-          console.error('Error deleting task assignments:', deleteError);
-          toast.error("Failed to update task assignments");
-          return;
-        }
-
         // Get family members to map names to IDs
         const { data: familyMembersData, error: membersError } = await supabase
           .from('family_members')
@@ -81,6 +69,18 @@ export const TaskManager = ({
         if (membersError || !familyMembersData) {
           console.error('Error fetching family members:', membersError);
           toast.error("Failed to fetch family members");
+          return;
+        }
+
+        // Delete existing assignments first
+        const { error: deleteError } = await supabase
+          .from('task_assignments')
+          .delete()
+          .eq('task_id', editingTask.id);
+
+        if (deleteError) {
+          console.error('Error deleting existing assignments:', deleteError);
+          toast.error("Failed to update task assignments");
           return;
         }
 
@@ -212,7 +212,7 @@ export const TaskManager = ({
     }
   };
 
-  const handleEditTask = async (task: Task) => {
+  const handleEditTask = (task: Task) => {
     console.log("Editing task in TaskManager:", task);
     setEditingTask(task);
     setShowTaskForm(true);
