@@ -39,7 +39,6 @@ export const TaskManager = ({
     assignedTo: string[];
   }) => {
     try {
-      // Get family members to map names to IDs
       const { data: familyMembersData, error: membersError } = await supabase
         .from('family_members')
         .select('id, name')
@@ -72,7 +71,19 @@ export const TaskManager = ({
           return;
         }
 
-        // Delete all existing assignments for this task
+        // First, fetch existing assignments
+        const { data: existingAssignments, error: fetchError } = await supabase
+          .from('task_assignments')
+          .select('family_member_id')
+          .eq('task_id', editingTask.id);
+
+        if (fetchError) {
+          console.error('Error fetching existing assignments:', fetchError);
+          toast.error("Failed to update task assignments");
+          return;
+        }
+
+        // Delete all existing assignments
         const { error: deleteError } = await supabase
           .from('task_assignments')
           .delete()
@@ -89,6 +100,19 @@ export const TaskManager = ({
           const member = familyMembersData.find(m => m.name === memberName);
           if (!member) {
             console.error('Family member not found:', memberName);
+            continue;
+          }
+
+          // Check if assignment already exists
+          const { data: existingAssignment } = await supabase
+            .from('task_assignments')
+            .select()
+            .eq('task_id', editingTask.id)
+            .eq('family_member_id', member.id)
+            .maybeSingle();
+
+          if (existingAssignment) {
+            console.log('Assignment already exists for:', memberName);
             continue;
           }
 
@@ -155,6 +179,19 @@ export const TaskManager = ({
             console.error('Family member not found:', memberName);
             assignmentSuccess = false;
             break;
+          }
+
+          // Check if assignment already exists
+          const { data: existingAssignment } = await supabase
+            .from('task_assignments')
+            .select()
+            .eq('task_id', newTask.id)
+            .eq('family_member_id', member.id)
+            .maybeSingle();
+
+          if (existingAssignment) {
+            console.log('Assignment already exists for:', memberName);
+            continue;
           }
 
           const { error: assignmentError } = await supabase
