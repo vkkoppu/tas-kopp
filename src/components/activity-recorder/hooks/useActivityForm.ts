@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { format } from "date-fns";
 import { FilterState, ActivityRecord } from "../shared-types";
@@ -41,6 +42,14 @@ export const useActivityForm = (
       setCompletedBy(newCompletedBy);
     } else {
       newCompletedTasks.add(taskId);
+      // For individual tasks, auto-select the assigned user
+      const task = tasks.find(t => t.id === taskId);
+      if (task && task.assignedTo.length === 1) {
+        setCompletedBy(prev => ({
+          ...prev,
+          [taskId]: task.assignedTo
+        }));
+      }
     }
     setCompletedTasks(newCompletedTasks);
   };

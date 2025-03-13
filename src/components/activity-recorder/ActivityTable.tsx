@@ -1,11 +1,12 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { Task } from "@/types/task";
 import { useState } from "react";
 import { Badge } from "../ui/badge";
 import { format } from "date-fns";
+import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
 
 interface ActivityTableProps {
   tasks: Task[];
@@ -40,6 +41,19 @@ export const ActivityTable = ({
     setExpandedTasks(newExpandedTasks);
   };
 
+  const toggleFamilyMember = (taskId: string, memberName: string) => {
+    const currentMembers = completedBy[taskId] || [];
+    let newMembers: string[];
+    
+    if (currentMembers.includes(memberName)) {
+      newMembers = currentMembers.filter(name => name !== memberName);
+    } else {
+      newMembers = [...currentMembers, memberName];
+    }
+    
+    onCompletedByChange(taskId, newMembers);
+  };
+
   const isOutOfWindow = (task: Task, date: Date) => {
     if (!task.startDate || !task.endDate) return false;
     const taskStart = new Date(task.startDate);
@@ -70,16 +84,12 @@ export const ActivityTable = ({
               const isCompleted = isTaskCompletedForDate(task.id);
               const isChecked = isCompleted || completedTasks.has(task.id);
               const selectedMembers = completedBy[task.id] || [];
-              const isIndividualTask = task.assignedTo.length === 1;
               const isOutOfRange = isOutOfWindow(task, selectedDate);
-              const isExpanded = expandedTasks.has(task.id) || (isChecked && !isIndividualTask);
+              const isExpanded = expandedTasks.has(task.id) || (isChecked && !isCompleted);
               
               // Auto-select the assigned user for individual tasks when checked
               const handleTaskToggle = () => {
                 onTaskToggle(task.id);
-                if (isIndividualTask && !completedTasks.has(task.id) && !isCompleted) {
-                  onCompletedByChange(task.id, task.assignedTo);
-                }
                 
                 // Auto-expand when checked
                 if (!isChecked && !isExpanded) {
@@ -119,32 +129,19 @@ export const ActivityTable = ({
                     </div>
                   </TableCell>
                   <TableCell>
-                    {isChecked && !isCompleted && !isIndividualTask && isExpanded && (
-                      <Select
-                        value={selectedMembers[0] || ""}
-                        onValueChange={(value) => {
-                          const newMembers = [...selectedMembers];
-                          if (!newMembers.includes(value)) {
-                            newMembers.push(value);
-                          }
-                          onCompletedByChange(task.id, newMembers);
-                        }}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Who completed it?" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {task.assignedTo.map((member) => (
-                            <SelectItem key={member} value={member}>
-                              {member}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                    {isChecked && !isCompleted && isIndividualTask && (
-                      <div className="text-sm text-muted-foreground">
-                        {task.assignedTo[0]}
+                    {isChecked && !isCompleted && isExpanded && (
+                      <div className="flex flex-wrap gap-1">
+                        {task.assignedTo.map((member) => (
+                          <Button
+                            key={member}
+                            size="sm"
+                            variant={selectedMembers.includes(member) ? "default" : "outline"}
+                            className="mb-1"
+                            onClick={() => toggleFamilyMember(task.id, member)}
+                          >
+                            {member}
+                          </Button>
+                        ))}
                       </div>
                     )}
                     {isCompleted && (
