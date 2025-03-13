@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { ActivityRecord } from "@/components/activity-recorder/shared-types";
 import { useToast } from "@/components/ui/use-toast";
@@ -62,7 +63,7 @@ export const useActivityRecording = () => {
   const handleActivityRecorded = async (newRecords: ActivityRecord[]) => {
     try {
       // Update the local state first for immediate UI feedback
-      setTaskRecords(prev => [...prev, ...newRecords]);
+      setTaskRecords(prev => [...newRecords, ...prev]);
       setShowActivityRecorder(false);
       
       toast({

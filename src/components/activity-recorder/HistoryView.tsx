@@ -1,3 +1,4 @@
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ActivityRecord } from "./types";
 import { Task } from "@/types/task";
@@ -13,7 +14,12 @@ export const HistoryView = ({ records, tasks }: HistoryViewProps) => {
     return task ? task.title : null;
   };
 
-  const validRecords = records.filter(record => getTaskTitle(record.taskId) !== null);
+  // Sort records by date (newest first)
+  const sortedRecords = [...records].sort((a, b) => {
+    return new Date(b.date).getTime() - new Date(a.date).getTime();
+  });
+
+  const validRecords = sortedRecords.filter(record => getTaskTitle(record.taskId) !== null);
 
   return (
     <ScrollArea className="flex-1 border rounded-md p-4 bg-pastel-purple/10">

@@ -234,7 +234,7 @@ export const useActivityForm = (
         return;
       }
 
-      const updatedRecords = [...localRecords, ...newRecords];
+      const updatedRecords = [...newRecords, ...localRecords];
       setLocalRecords(updatedRecords);
       await onSave(updatedRecords);
       setCompletedTasks(new Set());
@@ -258,5 +258,6 @@ export const useActivityForm = (
     handleSave,
     handleEditRecord,
     handleDeleteRecord,
+    localRecords,
   };
 };

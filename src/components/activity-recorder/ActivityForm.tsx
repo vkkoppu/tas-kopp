@@ -22,6 +22,7 @@ export const ActivityForm = ({ tasks, familyMembers, onSave, records }: Activity
     handleSave,
     handleEditRecord,
     handleDeleteRecord,
+    localRecords
   } = useActivityForm(tasks, familyMembers, onSave, records);
 
   const filteredTasks = tasks.filter(task => {
@@ -82,17 +83,17 @@ export const ActivityForm = ({ tasks, familyMembers, onSave, records }: Activity
         selectedDate={filterState.selectedDate}
       />
 
-      {records.length > 0 && (
+      {localRecords.length > 0 && (
         <Card className="p-4">
           <h3 className="text-lg font-semibold mb-4">Recent Records</h3>
           <ScrollArea className="h-[200px]">
             <div className="space-y-4">
-              {records.map((record) => {
+              {localRecords.map((record, idx) => {
                 const task = tasks.find(t => t.id === record.taskId);
                 if (!task) return null;
 
                 return (
-                  <div key={`${record.taskId}-${record.date}-${record.completedBy}`} className="flex items-center justify-between border-b pb-2">
+                  <div key={`${record.taskId}-${record.date}-${record.completedBy}-${idx}`} className="flex items-center justify-between border-b pb-2">
                     <div className="flex-grow">
                       <p className="font-medium">{task.title}</p>
                       <p className="text-sm text-muted-foreground">
