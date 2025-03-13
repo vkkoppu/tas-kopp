@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ListCheck, X } from "lucide-react";
@@ -13,8 +14,8 @@ export const ActivityRecorder = ({
   onRecordAdded 
 }: ActivityRecorderProps) => {
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center">
-      <Card className="bg-white w-full max-w-2xl h-[80vh] flex flex-col">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-4">
+      <Card className="bg-white w-full max-w-4xl h-[85vh] flex flex-col">
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center gap-2">
             <ListCheck className="h-5 w-5" />

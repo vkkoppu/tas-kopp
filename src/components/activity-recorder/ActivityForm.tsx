@@ -1,8 +1,9 @@
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { ActivityFormProps } from "./shared-types";
 import { DateSelector } from "./DateSelector";
-import { TaskList } from "./TaskList";
+import { ActivityTable } from "./ActivityTable";
 import { useActivityForm } from "./hooks/useActivityForm";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
@@ -37,7 +38,7 @@ export const ActivityForm = ({ tasks, familyMembers, onSave, records }: Activity
 
   return (
     <div className="space-y-4">
-      <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Select 
           value={filterState.viewMode} 
           onValueChange={(value: "all" | "pending" | "completed") => 
@@ -70,13 +71,15 @@ export const ActivityForm = ({ tasks, familyMembers, onSave, records }: Activity
         />
       </div>
 
-      <TaskList
+      <ActivityTable
         tasks={filteredTasks}
+        familyMembers={familyMembers}
         completedTasks={completedTasks}
         completedBy={completedBy}
         onTaskToggle={handleTaskToggle}
         onCompletedByChange={(taskId, value) => setCompletedBy({ ...completedBy, [taskId]: value })}
         isTaskCompletedForDate={isTaskCompletedForDate}
+        selectedDate={filterState.selectedDate}
       />
 
       {records.length > 0 && (
