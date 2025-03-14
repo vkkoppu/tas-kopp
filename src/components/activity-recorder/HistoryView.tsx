@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/table";
 import { format, startOfWeek, endOfWeek, addWeeks, isWithinInterval, parseISO } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, List, CalendarDays } from "lucide-react";
+import { Calendar, List, ArrowLeft, ArrowRight, CalendarDays } from "lucide-react";
 
 interface HistoryViewProps {
   records: ActivityRecord[];
@@ -82,7 +82,7 @@ export const HistoryView = ({ records, tasks }: HistoryViewProps) => {
         <Tabs defaultValue="table" onValueChange={(v) => setViewMode(v as "list" | "table")}>
           <TabsList>
             <TabsTrigger value="table" className="flex items-center gap-1">
-              <Table className="h-4 w-4" />
+              <Calendar className="h-4 w-4" />
               <span>Table View</span>
             </TabsTrigger>
             <TabsTrigger value="list" className="flex items-center gap-1">
@@ -96,8 +96,9 @@ export const HistoryView = ({ records, tasks }: HistoryViewProps) => {
           <button 
             onClick={goToPreviousWeek}
             className="p-1 rounded-full hover:bg-purple-100 text-purple-primary"
+            aria-label="Previous week"
           >
-            ←
+            <ArrowLeft className="h-4 w-4" />
           </button>
           <span className="font-medium text-purple-primary">
             {format(currentWeekStart, 'MMM d')} - {format(currentWeekEnd, 'MMM d, yyyy')}
@@ -105,8 +106,9 @@ export const HistoryView = ({ records, tasks }: HistoryViewProps) => {
           <button 
             onClick={goToNextWeek}
             className="p-1 rounded-full hover:bg-purple-100 text-purple-primary"
+            aria-label="Next week"
           >
-            →
+            <ArrowRight className="h-4 w-4" />
           </button>
         </div>
       </div>
@@ -117,22 +119,22 @@ export const HistoryView = ({ records, tasks }: HistoryViewProps) => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[200px]">Task</TableHead>
-                  {familyMembers.map(member => (
-                    <TableHead key={member} className="text-center">{member}</TableHead>
+                  <TableHead className="w-[150px]">Family Member</TableHead>
+                  {uniqueTasks.map(task => (
+                    <TableHead key={task.id} className="text-center">{task.title}</TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {uniqueTasks.map(task => (
-                  <TableRow key={task.id}>
-                    <TableCell className="font-medium text-purple-primary">{task.title}</TableCell>
-                    {familyMembers.map(member => (
-                      <TableCell key={`${task.id}-${member}`} className="text-center">
+                {familyMembers.map(member => (
+                  <TableRow key={member}>
+                    <TableCell className="font-medium text-purple-primary">{member}</TableCell>
+                    {uniqueTasks.map(task => (
+                      <TableCell key={`${member}-${task.id}`} className="text-center">
                         {wasTaskCompletedBy(task.id, member) ? (
-                          <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-green-100 text-green-800">✓</span>
+                          <div className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-green-100 text-green-800">✓</div>
                         ) : (
-                          <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-red-100 text-red-800">✗</span>
+                          <div className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-red-100 text-red-800">✗</div>
                         )}
                       </TableCell>
                     ))}
@@ -150,7 +152,7 @@ export const HistoryView = ({ records, tasks }: HistoryViewProps) => {
                       Completed by: {record.completedBy}
                     </div>
                     <div className="text-sm text-purple-tertiary">
-                      Date: {record.date}
+                      Date: {format(new Date(record.date), 'MMM d, yyyy')}
                     </div>
                   </div>
                 </div>
